@@ -1,0 +1,776 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Каталог | GlovimPay</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    /* Основные переменные как на главной */
+    :root {
+      --primary: #6C5CE7;
+      --primary-dark: #5649C0;
+      --secondary: #00B894;
+      --accent: #FD79A8;
+      --dark: #2D3436;
+      --light: #F5F6FA;
+      --gray: #636E72;
+      --light-gray: #DFE6E9;
+      --success: #00B894;
+      --warning: #FDCB6E;
+      --danger: #D63031;
+      --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      --border-radius: 12px;
+    }
+    
+    /* Общие стили */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+    
+    body {
+      background-color: var(--light);
+      color: var(--dark);
+      line-height: 1.6;
+      padding-bottom: 70px;
+      transition: var(--transition);
+    }
+    
+    body.dark-mode {
+      background: #121212;
+      color: #e0e0e0;
+    }
+    
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+    
+    /* Хедер как на главной */
+    .main-header {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3);
+    }
+    
+    .logo {
+      font-size: 22px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .logo img {
+      width: 30px;
+      height: 30px;
+      border-radius: 6px;
+    }
+    
+    .header-actions {
+      display: flex;
+      gap: 15px;
+    }
+    
+    .header-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    
+    .header-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: scale(1.1);
+    }
+    
+    /* Поиск как на главной */
+    .search-container {
+      flex: 1;
+      max-width: 500px;
+      margin: 0 20px;
+      position: relative;
+    }
+    
+    .search-input {
+      width: 100%;
+      padding: 10px 45px 10px 15px;
+      border: 1px solid var(--light-gray);
+      border-radius: var(--border-radius);
+      font-size: 14px;
+      transition: var(--transition);
+    }
+    
+    .search-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.2);
+    }
+    
+    .search-btn {
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--gray);
+      cursor: pointer;
+      font-size: 16px;
+    }
+    
+    /* Вкладки каталога */
+    .tabs {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin: 25px 0;
+    }
+    
+    .tab-btn {
+      padding: 8px 20px;
+      background: var(--light);
+      border-radius: 20px;
+      font-weight: 500;
+      color: var(--gray);
+      border: 1px solid var(--light-gray);
+      transition: var(--transition);
+      cursor: pointer;
+    }
+    
+    body.dark-mode .tab-btn {
+      background: #1E1E1E;
+      border-color: #3D3D3D;
+    }
+    
+    .tab-btn:hover, .tab-btn.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+      box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3);
+    }
+    
+    /* Контент вкладок */
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+    
+    .section-title {
+      font-size: 24px;
+      font-weight: 600;
+      margin: 25px 0 15px;
+      position: relative;
+      padding-left: 15px;
+      color: var(--primary);
+    }
+    
+    .section-title::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 5px;
+      bottom: 5px;
+      width: 4px;
+      background: var(--primary);
+      border-radius: 2px;
+    }
+    
+    /* Горизонтальный скролл игр */
+    .games-scroll {
+      display: flex;
+      gap: 20px;
+      overflow-x: auto;
+      padding-bottom: 15px;
+      margin-bottom: 25px;
+      scrollbar-width: thin;
+    }
+    
+    .games-scroll::-webkit-scrollbar {
+      height: 6px;
+    }
+    
+    .games-scroll::-webkit-scrollbar-thumb {
+      background: var(--primary);
+      border-radius: 3px;
+    }
+    
+    /* Карточка игры */
+    .game-card {
+      flex: 0 0 auto;
+      width: 150px;
+      text-align: center;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    
+    .game-card:hover {
+      transform: translateY(-5px);
+    }
+    
+    .game-image {
+      width: 150px;
+      height: 150px;
+      border-radius: var(--border-radius);
+      object-fit: cover;
+      box-shadow: var(--card-shadow);
+      margin-bottom: 10px;
+    }
+    
+    .game-name {
+      font-weight: 600;
+      font-size: 16px;
+    }
+    
+    .new-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      background: var(--accent);
+      color: white;
+      font-size: 12px;
+      font-weight: 500;
+      border-radius: 12px;
+      margin-left: 5px;
+    }
+    
+    /* Кнопка предложить */
+    .offer-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      background: var(--primary);
+      color: white;
+      border-radius: var(--border-radius);
+      font-weight: 600;
+      transition: var(--transition);
+      margin-top: 15px;
+    }
+    
+    .offer-btn:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+    
+    /* Модальное окно */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .modal-content {
+      background: white;
+      border-radius: var(--border-radius);
+      padding: 20px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      animation: modalFadeIn 0.3s ease;
+    }
+    
+    body.dark-mode .modal-content {
+      background: #1E1E1E;
+    }
+    
+    @keyframes modalFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    
+    .modal-title {
+      font-size: 20px;
+      font-weight: 600;
+    }
+    
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 24px;
+      color: var(--gray);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    
+    .modal-close:hover {
+      color: var(--danger);
+    }
+    
+    .form-group {
+      margin-bottom: 15px;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 500;
+    }
+    
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--light-gray);
+      border-radius: var(--border-radius);
+      font-size: 16px;
+      background: transparent;
+      color: inherit;
+    }
+    
+    body.dark-mode .form-group input,
+    body.dark-mode .form-group textarea {
+      border-color: #3D3D3D;
+    }
+    
+    .form-group textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+    
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    
+    /* Мобильная навигация как на главной */
+    .mobile-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+      z-index: 100;
+      display: none;
+    }
+    
+    body.dark-mode .mobile-nav {
+      background: #1E1E1E;
+    }
+    
+    .mobile-nav-container {
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+    }
+    
+    .mobile-nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: var(--gray);
+      font-size: 12px;
+      gap: 5px;
+      padding: 5px 10px;
+      border-radius: 8px;
+      transition: var(--transition);
+    }
+    
+    .mobile-nav-item i {
+      font-size: 20px;
+    }
+    
+    .mobile-nav-item.active,
+    .mobile-nav-item:hover {
+      color: var(--primary);
+      background: rgba(108, 92, 231, 0.1);
+    }
+    
+    /* Адаптивность */
+    @media (max-width: 768px) {
+      .main-header {
+        padding: 12px 15px;
+      }
+      
+      .logo {
+        font-size: 20px;
+      }
+      
+      .search-container {
+        margin: 0 10px;
+      }
+      
+      .game-card {
+        width: 120px;
+      }
+      
+      .game-image {
+        width: 120px;
+        height: 120px;
+      }
+      
+      .mobile-nav {
+        display: block;
+      }
+      
+      .tabs {
+        flex-wrap: wrap;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Хедер как на главной -->
+  <header class="main-header">
+    <a href="index.html" class="logo">
+      <img src="images/logo (2).png" alt="GlovimPay">
+      <span>GlovimPay</span>
+    </a>
+    
+    <div class="search-container">
+      <input type="text" class="search-input" placeholder="Поиск игр..." id="searchInput">
+      <button class="search-btn"><i class="fas fa-search"></i></button>
+    </div>
+    
+    <div class="header-actions">
+      <button class="header-btn" id="themeToggle">
+        <i class="fas fa-moon" id="themeIcon"></i>
+      </button>
+     
+     
+    </div>
+  </header>
+  
+  <!-- Основной контент -->
+  <div class="container">
+    <!-- Вкладки -->
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="games">Игры</button>
+      <button class="tab-btn" data-tab="mobile">Мобильные</button>
+      <button class="tab-btn" data-tab="apps">Приложения</button>
+    </div>
+    
+    <!-- Результаты поиска (скрыто по умолчанию) -->
+    <div id="searchResults" style="display: none;">
+      <h2 class="section-title">Результаты поиска</h2>
+      <div class="games-scroll" id="searchResultsContainer"></div>
+    </div>
+    
+    <!-- Вкладка Игры -->
+    <div id="games" class="tab-content active">
+      <h2 class="section-title">Популярные игры</h2>
+      <div class="games-scroll">
+        <div class="game-card" onclick="location.href='csgo.html'">
+          <img src="images/csgo.jpg" alt="CS:GO" class="game-image">
+          <div class="game-name">CS:GO</div>
+        </div>
+        <div class="game-card" onclick="location.href='dota2.html'">
+          <img src="images/dota.jpg" alt="Dota 2" class="game-image">
+          <div class="game-name">Dota 2</div>
+        </div>
+        <div class="game-card" onclick="location.href='valorant.html'">
+          <img src="images/valorant.jpg" alt="Valorant" class="game-image">
+          <div class="game-name">Valorant</div>
+        </div>
+        <div class="game-card" onclick="location.href='fortnite.html'">
+          <img src="images/fortnite.jpg" alt="Fortnite" class="game-image">
+          <div class="game-name">Fortnite</div>
+        </div>
+        <div class="game-card" onclick="location.href='rust.html'">
+          <img src="images/rust.jpg" alt="Rust" class="game-image">
+          <div class="game-name">Rust <span class="new-badge">Новое</span></div>
+        </div>
+        <div class="game-card" onclick="location.href='minecraft.html'">
+          <img src="images/minecraft.jpg" alt="Minecraft" class="game-image">
+          <div class="game-name">Minecraft</div>
+        </div>
+      </div>
+      
+      <button class="offer-btn" onclick="openOfferModal('Игры')">
+        <i class="fas fa-plus"></i> Предложить игру
+      </button>
+    </div>
+    
+    <!-- Вкладка Мобильные игры -->
+    <div id="mobile" class="tab-content">
+      <h2 class="section-title">Мобильные игры</h2>
+      <div class="games-scroll">
+        <div class="game-card" onclick="location.href='pubg-mobile.html'">
+          <img src="images/pubg-mobile.jpg" alt="PUBG Mobile" class="game-image">
+          <div class="game-name">PUBG Mobile</div>
+        </div>
+        <div class="game-card" onclick="location.href='cod-mobile.html'">
+          <img src="images/cod-mobile.jpg" alt="COD Mobile" class="game-image">
+          <div class="game-name">COD Mobile</div>
+        </div>
+        <div class="game-card" onclick="location.href='genshin-impact.html'">
+          <img src="images/genshin.jpg" alt="Genshin Impact" class="game-image">
+          <div class="game-name">Genshin Impact</div>
+        </div>
+      </div>
+      
+      <button class="offer-btn" onclick="openOfferModal('Мобильные игры')">
+        <i class="fas fa-plus"></i> Предложить игру
+      </button>
+    </div>
+    
+    <!-- Вкладка Приложения -->
+    <div id="apps" class="tab-content">
+      <h2 class="section-title">Популярные приложения</h2>      <div class="games-scroll">
+        <div class="game-card" onclick="location.href='discord.html'">
+          <img src="images/discord.jpg" alt="Discord" class="game-image">
+          <div class="game-name">Discord</div>
+        </div>
+        <div class="game-card" onclick="location.href='spotify.html'">
+          <img src="images/spotify.jpg" alt="Spotify" class="game-image">
+          <div class="game-name">Spotify</div>
+        </div>
+        <div class="game-card" onclick="location.href='telegram.html'">
+          <img src="images/telegram.jpg" alt="Telegram" class="game-image">
+          <div class="game-name">Telegram</div>
+        </div>
+        <div class="game-card" onclick="location.href='steam.html'">
+          <img src="images/steam.jpg" alt="Steam" class="game-image">
+          <div class="game-name">Steam</div>
+        </div>
+        <div class="game-card" onclick="location.href='tiktok.html'">
+          <img src="images/tiktok.jpg" alt="TikTok" class="game-image">
+          <div class="game-name">TikTok</div>
+        </div>
+      </div>
+      
+      <button class="offer-btn" onclick="openOfferModal('Приложения')">
+        <i class="fas fa-plus"></i> Предложить приложение
+      </button>
+    </div>
+  </div>
+  
+  <!-- Модальное окно предложения -->
+  <div class="modal" id="offerModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Предложить новый элемент</h3>
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="offerCategory">Категория</label>
+          <input type="text" id="offerCategory" readonly>
+        </div>
+        <div class="form-group">
+          <label for="offerName">Название</label>
+          <input type="text" id="offerName" placeholder="Введите название">
+        </div>
+        <div class="form-group">
+          <label for="offerDescription">Описание</label>
+          <textarea id="offerDescription" placeholder="Опишите ваш элемент"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="offerImage">Изображение (опционально)</label>
+          <input type="file" id="offerImage" accept="image/*">
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-outline" onclick="closeModal()">Отмена</button>
+        <button class="btn btn-primary" onclick="submitOffer()">Отправить</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Мобильная навигация -->
+  <nav class="mobile-nav">
+    <div class="mobile-nav-container">
+      <a href="index.html" class="mobile-nav-item">
+        <i class="fas fa-home"></i>
+        <span>Главная</span>
+      </a>
+      <a href="catalog.html" class="mobile-nav-item active">
+        <i class="fas fa-th-list"></i>
+        <span>Каталог</span>
+      </a>
+      <a href="add.html" class="mobile-nav-item">
+        <i class="fas fa-plus"></i>
+        <span>Продать</span>
+      </a>
+      <a href="profile.html" class="mobile-nav-item">
+        <i class="fas fa-user"></i>
+        <span>Профиль</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Скрипты -->
+  <script>
+    // Переключение темы
+    function applyTheme(theme) {
+      if (theme === 'dark') {
+        document.body.classList.add('dark-mode');
+        themeIcon.className = "fas fa-sun";
+        localStorage.setItem('theme', 'dark');
+      } else {
+        document.body.classList.remove('dark-mode');
+        themeIcon.className = "fas fa-moon";
+        localStorage.setItem('theme', 'light');
+      }
+    }
+
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+    
+    themeToggle.addEventListener('click', () => {
+      const currentTheme = localStorage.getItem('theme') || 'light';
+      applyTheme(currentTheme === 'light' ? 'dark' : 'light');
+    });
+
+    // Применяем сохраненную тему при загрузке
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    applyTheme(savedTheme);
+
+    // Управление вкладками
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        // Удаляем активный класс у всех кнопок и контента
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        
+        // Добавляем активный класс текущей кнопке
+        btn.classList.add('active');
+        
+        // Показываем соответствующий контент
+        const tabId = btn.getAttribute('data-tab');
+        document.getElementById(tabId).classList.add('active');
+      });
+    });
+
+    // Поиск
+    const searchInput = document.getElementById('searchInput');
+    const searchResults = document.getElementById('searchResults');
+    const searchResultsContainer = document.getElementById('searchResultsContainer');
+    const tabsContainer = document.getElementById('tabs-container');
+    const tabsContent = document.getElementById('tabs-content');
+    
+    searchInput.addEventListener('input', function() {
+      const query = this.value.trim().toLowerCase();
+      
+      if (query.length === 0) {
+        searchResults.style.display = 'none';
+        tabsContainer.style.display = 'block';
+        tabsContent.style.display = 'block';
+        return;
+      }
+      
+      // Скрываем обычные вкладки
+      tabsContainer.style.display = 'none';
+      tabsContent.style.display = 'none';
+      
+      // Показываем результаты поиска
+      searchResults.style.display = 'block';
+      searchResultsContainer.innerHTML = '';
+      
+      // Ищем совпадения во всех карточках
+      document.querySelectorAll('.game-card').forEach(card => {
+        const name = card.querySelector('.game-name').textContent.toLowerCase();
+        if (name.includes(query)) {
+          const clone = card.cloneNode(true);
+          searchResultsContainer.appendChild(clone);
+        }
+      });
+      
+      if (searchResultsContainer.children.length === 0) {
+        searchResultsContainer.innerHTML = '<p style="padding: 20px; text-align: center;">Ничего не найдено</p>';
+      }
+    });
+
+    // Модальное окно
+    function openOfferModal(category) {
+      document.getElementById('offerCategory').value = category;
+      document.getElementById('offerModal').style.display = 'flex';
+    }
+    
+    function closeModal() {
+      document.getElementById('offerModal').style.display = 'none';
+    }
+    
+    function submitOffer() {
+      const category = document.getElementById('offerCategory').value;
+      const name = document.getElementById('offerName').value.trim();
+      const description = document.getElementById('offerDescription').value.trim();
+      const imageFile = document.getElementById('offerImage').files[0];
+      
+      if (!name || !description) {
+        alert('Пожалуйста, заполните все обязательные поля');
+        return;
+      }
+      
+      // Здесь можно добавить код для отправки данных на сервер
+      console.log('Предложено:', { category, name, description, imageFile });
+      
+      alert('Спасибо! Ваше предложение отправлено на модерацию.');
+      closeModal();
+      
+      // Очищаем форму
+      document.getElementById('offerName').value = '';
+      document.getElementById('offerDescription').value = '';
+      document.getElementById('offerImage').value = '';
+    }
+
+    // Адаптивность
+    function checkScreenSize() {
+      if (window.innerWidth <= 768) {
+        document.querySelector('.mobile-nav').style.display = 'block';
+      } else {
+        document.querySelector('.mobile-nav').style.display = 'none';
+      }
+    }
+    
+    window.addEventListener('resize', checkScreenSize);
+    checkScreenSize();
+  </script>
+</body>
+</html>

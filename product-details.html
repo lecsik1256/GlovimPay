@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Оформление заказа | GlovimPlaye</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Firebase v8 -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  
+  <!-- CryptoJS для дешифрования -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+  
+  <!-- Font Awesome для иконок -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    /* Основные переменные */
+    :root {
+      --primary: #6C5CE7;
+      --primary-dark: #5649C0;
+      --secondary: #00B894;
+      --accent: #FD79A8;
+      --dark: #2D3436;
+      --light: #F5F6FA;
+      --gray: #636E72;
+      --light-gray: #DFE6E9;
+      --success: #00B894;
+      --warning: #FDCB6E;
+      --danger: #D63031;
+      --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      --border-radius: 12px;
+    }
+    
+    /* Общие стили */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+    
+    body {
+      background-color: var(--light);
+      color: var(--dark);
+      line-height: 1.6;
+      transition: var(--transition);
+    }
+    
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+    
+    button, input, textarea {
+      font-family: inherit;
+      outline: none;
+    }
+    
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+
+
+    .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+      }
+
+    
+    .theme-toggle, .notification-btn, .profile-btn {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: var(--light);
+      color: var(--gray);
+      border: none;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    
+    .theme-toggle:hover, .notification-btn:hover, .profile-btn:hover {
+      background: rgba(108, 92, 231, 0.1);
+      color: var(--primary);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+    /* Шапка */
+    header {
+      background: white;
+      box-shadow: var(--card-shadow);
+      padding: 15px 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    
+    .header-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    
+    .logo img {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+    }
+    
+    /* Основной контент */
+    .main-content {
+      padding: 30px 0;
+    }
+    
+    .section-title {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      color: var(--dark);
+      position: relative;
+      padding-left: 15px;
+    }
+    
+    .section-title::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 5px;
+      bottom: 5px;
+      width: 4px;
+      background: var(--primary);
+      border-radius: 2px;
+    }
+    
+    /* Блок оформления заказа */
+    .checkout-container {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 30px;
+    }
+    
+    @media (min-width: 992px) {
+      .checkout-container {
+        grid-template-columns: 2fr 1fr;
+      }
+    }
+    
+    .checkout-card {
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--card-shadow);
+      padding: 25px;
+      transition: var(--transition);
+    }
+    
+    .checkout-card:hover {
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Информация о товаре */
+    .product-info {
+      margin-bottom: 30px;
+    }
+    
+    .product-image {
+      width: 100%;
+      height: 300px;
+      object-fit: cover;
+      border-radius: var(--border-radius);
+      margin-bottom: 20px;
+    }
+    
+    .product-title {
+      font-size: 22px;
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: var(--dark);
+    }
+    
+    .product-description {
+      color: var(--gray);
+      margin-bottom: 15px;
+    }
+    
+    .product-price {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 20px;
+    }
+    
+    .seller-info {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-top: 25px;
+      padding-top: 20px;
+      border-top: 1px solid var(--light-gray);
+    }
+    
+    .seller-avatar {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid white;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .seller-name {
+      font-weight: 600;
+      font-size: 16px;
+    }
+    
+    .seller-rating {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 14px;
+      color: var(--warning);
+      margin-top: 3px;
+    }
+    
+    /* Детали заказа */
+    .order-summary {
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--card-shadow);
+      padding: 25px;
+      position: sticky;
+      top: 100px;
+    }
+    
+    .summary-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      color: var(--dark);
+    }
+    
+    .summary-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 15px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid var(--light-gray);
+    }
+    
+    .summary-total {
+      font-size: 18px;
+      font-weight: 700;
+      margin-top: 20px;
+      color: var(--dark);
+    }
+    
+    .summary-price {
+      font-weight: 600;
+      color: var(--primary);
+    }
+    
+    .checkout-btn {
+      width: 100%;
+      padding: 15px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: var(--border-radius);
+      font-size: 16px;
+      font-weight: 600;
+      margin-top: 25px;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    
+    .checkout-btn:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+    
+    /* Мобильная навигация */
+    .mobile-nav {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+      z-index: 100;
+    }
+    
+    .mobile-nav-container {
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+    }
+    
+    .mobile-nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: var(--gray);
+      font-size: 12px;
+      gap: 5px;
+      padding: 5px 10px;
+      border-radius: 8px;
+      transition: var(--transition);
+    }
+    
+    .mobile-nav-item i {
+      font-size: 20px;
+    }
+    
+    .mobile-nav-item.active, .mobile-nav-item:hover {
+      color: var(--primary);
+      background: rgba(108, 92, 231, 0.1);
+    }
+    
+    /* Модальные окна */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .modal-content {
+      background: white;
+      border-radius: var(--border-radius);
+      width: 90%;
+      max-width: 500px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      animation: modalFadeIn 0.3s ease;
+    }
+    
+    @keyframes modalFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .modal-header {
+      padding: 20px;
+      border-bottom: 1px solid var(--light-gray);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .modal-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--dark);
+    }
+    
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 24px;
+      color: var(--gray);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    
+    .modal-close:hover {
+      color: var(--danger);
+    }
+    
+    .modal-body {
+      padding: 20px;
+    }
+    
+    .modal-buttons {
+      display: flex;
+      gap: 15px;
+      margin-top: 20px;
+    }
+    
+    .modal-btn {
+      flex: 1;
+      padding: 12px;
+      border-radius: var(--border-radius);
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      border: none;
+    }
+    
+    .modal-btn.confirm {
+      background: var(--success);
+      color: white;
+    }
+    
+    .modal-btn.confirm:hover {
+      background: #218838;
+    }
+    
+    .modal-btn.cancel {
+      background: var(--danger);
+      color: white;
+    }
+    
+    .modal-btn.cancel:hover {
+      background: #c82333;
+    }
+    
+    /* Футер */
+    .footer {
+      background: var(--dark);
+      color: white;
+      padding: 30px 0 20px;
+      margin-top: 50px;
+    }
+    
+    .footer-content {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 30px;
+      margin-bottom: 30px;
+    }
+    
+    .footer-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    
+    .footer-logo img {
+      width: 40px;
+      height: 40px;
+    }
+    
+    .footer-logo-text {
+      font-size: 20px;
+      font-weight: 700;
+    }
+    
+    .footer-about {
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--light-gray);
+      margin-bottom: 20px;
+    }
+    
+    .footer-social {
+      display: flex;
+      gap: 15px;
+    }
+    
+    .social-link {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      transition: var(--transition);
+    }
+    
+    .social-link:hover {
+      background: var(--primary);
+      transform: translateY(-3px);
+    }
+    
+    .footer-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      position: relative;
+      padding-bottom: 10px;
+    }
+    
+    .footer-title::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 40px;
+      height: 2px;
+      background: var(--primary);
+    }
+    
+    .footer-links {
+      list-style: none;
+    }
+    
+    .footer-links li {
+      margin-bottom: 12px;
+    }
+    
+    .footer-links a {
+      color: var(--light-gray);
+      font-size: 14px;
+      transition: var(--transition);
+      display: block;
+    }
+    
+    .footer-links a:hover {
+      color: var(--primary);
+      padding-left: 5px;
+    }
+    
+    .footer-bottom {
+      text-align: center;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      font-size: 14px;
+      color: var(--light-gray);
+    }
+    
+    /* Адаптивность */
+    @media (max-width: 768px) {
+      .product-image {
+        height: 220px;
+      }
+      
+      .product-title {
+        font-size: 20px;
+      }
+      
+      .product-price {
+        font-size: 20px;
+      }
+    }
+    
+    @media (max-width: 576px) {
+      .mobile-nav {
+        display: block;
+      }
+    }
+    
+    /* Темная тема */
+    body.dark-mode {
+      background: #121212;
+      color: #e0e0e0;
+    }
+    
+    body.dark-mode header,
+    body.dark-mode .checkout-card,
+    body.dark-mode .order-summary {
+      background: #1E1E1E;
+      color: #e0e0e0;
+    }
+    
+    body.dark-mode .section-title {
+      color: #e0e0e0;
+    }
+    
+    body.dark-mode .seller-info {
+      border-color: #3D3D3D;
+    }
+    
+    body.dark-mode .summary-item {
+      border-color: #3D3D3D;
+    }
+    
+    body.dark-mode .mobile-nav {
+      background: #1E1E1E;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+    }
+    
+    body.dark-mode .mobile-nav-item {
+      color: #b0b0b0;
+    }
+    
+    body.dark-mode .mobile-nav-item.active,
+    body.dark-mode .mobile-nav-item:hover {
+      color: var(--primary);
+    }
+    
+    body.dark-mode .modal-content {
+      background: #1E1E1E;
+      color: #e0e0e0;
+    }
+    
+    body.dark-mode .modal-title {
+      color: #e0e0e0;
+    }
+    
+    body.dark-mode .modal-header {
+      border-color: #3D3D3D;
+    }
+  </style>
+</head>
+<body>
+  <!-- Шапка -->
+  <header>
+    <div class="container">
+      <div class="header-content">
+        <a href="index.html" class="logo">
+          <img src="images/logo (2).png" alt="GlovimPlaye">
+          <span>GlovimPlaye</span>
+        </a>
+        
+        <div class="header-actions">
+          <button class="theme-toggle" id="themeToggle">
+            <i class="fas fa-sun" id="themeIcon"></i>
+          </button>
+    </div>
+  </header>
+  
+  <!-- Основной контент -->
+  <main class="main-content">
+    <div class="container">
+      <h1 class="section-title">Оформление заказа</h1>
+      
+      <div class="checkout-container">
+        <!-- Информация о товаре -->
+        <div class="checkout-card product-info">
+          <img id="productImg" class="product-image" src="placeholder.jpg" alt="Изображение товара">
+          <h2 id="productName" class="product-title">Название товара</h2>
+          <p id="productDescription" class="product-description">Описание товара...</p>
+          <div class="product-price" id="productPrice">0 ₽</div>
+          
+          <div class="seller-info" onclick="openSellerModal()">
+            <img id="sellerAvatar" src="default-avatar.png" alt="Продавец" class="seller-avatar">
+            <div>
+              <div class="seller-name" id="sellerName">Неизвестно</div>
+              <div class="seller-rating">
+                <i class="fas fa-star"></i> 4.8
+              </div>
+            </div>
+         
+          </div>
+        </div>
+        
+        <!-- Детали заказа -->
+        <div class="order-summary">
+          <h3 class="summary-title">Детали заказа</h3>
+          
+          <div class="summary-item">
+            <span>Товар:</span>
+            <span id="summaryProductName">Название товара</span>
+          </div>
+          
+          <div class="summary-item">
+            <span>Цена:</span>
+            <span class="summary-price" id="summaryProductPrice">0 ₽</span>
+          </div>
+          
+          <div class="summary-item">
+            <span>Комиссия (5%):</span>
+            <span class="summary-price" id="summaryCommission">0 ₽</span>
+          </div>
+          
+          <div class="summary-total">
+            <span>Итого к оплате:</span>
+            <span class="summary-price" id="summaryTotal">0 ₽</span>
+          </div>
+          
+          <button class="checkout-btn" id="checkoutBtn">Оформить заказ</button>
+        </div>
+      </div>
+    </div>
+  </main>
+  
+  <!-- Мобильная навигация -->
+  <nav class="mobile-nav">
+    <div class="mobile-nav-container">
+      <a href="index.html" class="mobile-nav-item">
+        <i class="fas fa-home"></i>
+        <span>Главная</span>
+      </a>
+      <a href="catalog.html" class="mobile-nav-item">
+        <i class="fas fa-th-large"></i>
+        <span>Каталог</span>
+      </a>
+      <a href="chat.html" class="mobile-nav-item">
+        <i class="fas fa-comment-dots"></i>
+        <span>Чат</span>
+      </a>
+      <a href="profile.html" class="mobile-nav-item">
+        <i class="fas fa-user"></i>
+        <span>Профиль</span>
+      </a>
+    </div>
+  </nav>
+  
+ 
+  
+  <!-- Модальное окно подтверждения покупки -->
+  <div id="confirmationModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Подтвердите покупку</h3>
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>Вы действительно хотите купить <strong id="modalProductName">Название товара</strong> за <strong id="modalProductPrice">0</strong> ₽?</p>
+        <p>Средства будут списаны с вашего баланса.</p>
+      </div>
+      <div class="modal-buttons">
+        <button class="modal-btn confirm" onclick="confirmPurchase()">Подтвердить</button>
+        <button class="modal-btn cancel" onclick="closeModal()">Отмена</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Модальное окно уведомления о недостатке средств -->
+  <div id="insufficientModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Платеж не выполнен</h3>
+        <button class="modal-close" onclick="closeInsufficientModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>Недостаточно средств на балансе.</p>
+        <p>Пожалуйста, пополните баланс для завершения покупки.</p>
+      </div>
+      <div class="modal-buttons">
+        <button class="modal-btn confirm" onclick="goToTopUp()">Пополнить баланс</button>
+        <button class="modal-btn cancel" onclick="closeInsufficientModal()">Отмена</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Модальное окно с данными товара для покупателя -->
+  <div id="sensitiveDataModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Данные товара</h3>
+        <button class="modal-close" onclick="closeSensitiveModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p id="sensitiveDataContent">Загрузка данных...</p>
+      </div>
+      <div class="modal-buttons">
+        <button class="modal-btn confirm" onclick="closeSensitiveModal()">Перейти в чат</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Скрипты -->
+  <script>
+    // Инициализация Firebase (замените на свои данные)
+    var firebaseConfig = {
+      apiKey: "AIzaSyAhn2H2BExFFf7GO2k_YDfrwPiV_cYdUBg",
+      authDomain: "glovimplaye-b1023.firebaseapp.com",
+      databaseURL: "https://glovimplaye-b1023-default-rtdb.firebaseio.com",
+      projectId: "glovimplaye-b1023",
+      storageBucket: "glovimplaye-b1023.appspot.com",
+      messagingSenderId: "553440591519",
+      appId: "1:553440591519:web:b7be45a9253689f322acaa"
+    };
+    firebase.initializeApp(firebaseConfig);
+    console.log("Firebase инициализирован");
+
+    // Функция получения GET-параметра из URL
+    function getParameterByName(name, url = window.location.href) {
+      name = name.replace(/[\[\]]/g, '\\$&');
+      var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+          results = regex.exec(url);
+      if (!results) return null;
+      if (!results[2]) return '';
+      return decodeURIComponent(results[2].replace(/\+/g, ' '));
+    }
+
+    // Проверка авторизации пользователя
+    firebase.auth().onAuthStateChanged(function(user) {
+      if (!user) {
+        console.log("Пользователь не авторизован");
+        window.location.href = "login.html";
+      } else {
+        console.log("Авторизованный пользователь:", user.email);
+        loadProduct();
+        setupThemeToggle();
+      }
+    });
+
+    // Глобальные переменные
+    let currentSeller = null;
+    let currentProductName = "";
+    let currentProductPrice = 0;
+    let currentProductId = "";
+
+    // Загрузка данных товара из Firebase
+    function loadProduct() {
+      const productId = getParameterByName('id');
+      if (!productId) {
+        alert("Товар не найден!");
+        window.location.href = "index.html";
+        return;
+      }
+      
+      currentProductId = productId;
+      console.log("Product ID:", productId);
+      
+      firebase.database().ref('products/' + productId).once('value')
+        .then(snapshot => {
+          if (!snapshot.exists()) {
+            alert("Товар не найден!");
+            window.location.href = "index.html";
+            return;
+          }
+          
+          const product = snapshot.val();
+          console.log("Данные товара:", product);
+          
+          currentProductName = product.name;
+          currentProductPrice = parseFloat(product.price) || 0;
+          
+          // Обновляем информацию на странице
+          document.getElementById("productName").textContent = currentProductName;
+          document.getElementById("productDescription").textContent = product.description || "Описание отсутствует";
+          document.getElementById("productPrice").textContent = currentProductPrice.toFixed(2) + " ₽";
+          
+          document.getElementById("summaryProductName").textContent = currentProductName;
+          document.getElementById("summaryProductPrice").textContent = currentProductPrice.toFixed(2) + " ₽";
+          
+          const commission = currentProductPrice * 0.05;
+          document.getElementById("summaryCommission").textContent = commission.toFixed(2) + " ₽";
+          document.getElementById("summaryTotal").textContent = currentProductPrice.toFixed(2) + " ₽";
+          
+          document.getElementById("modalProductName").textContent = currentProductName;
+          document.getElementById("modalProductPrice").textContent = currentProductPrice.toFixed(2);
+          
+          // Загрузка изображения товара
+          if (product.photoURLs && product.photoURLs.length > 0) {
+            document.getElementById("productImg").src = product.photoURLs[0];
+          } else if (product.photoURL) {
+            document.getElementById("productImg").src = product.photoURL;
+          } else if (product.image) {
+            document.getElementById("productImg").src = product.image;
+          }
+          
+          if (!product.sellerId) {
+            alert("Ошибка: идентификатор продавца не найден.");
+            throw new Error("sellerId отсутствует");
+          }
+          
+          currentSeller = product.sellerId;
+          return firebase.database().ref('users/' + currentSeller).once('value');
+        })
+        .then(snap => {
+          if (snap && snap.exists()) {
+            const sellerData = snap.val();
+            console.log("Данные продавца:", sellerData);
+            
+            document.getElementById("sellerName").textContent = sellerData.nickname || sellerData.name || "Неизвестно";
+            
+            if (sellerData.avatar) {
+              document.getElementById("sellerAvatar").src = sellerData.avatar;
+            }
+            
+            if (sellerData.rating) {
+              document.querySelector(".seller-rating").innerHTML = 
+                `<i class="fas fa-star"></i> ${sellerData.rating.toFixed(1)}`;
+            }
+          }
+        })
+        .catch(error => {
+          console.error("Ошибка при загрузке данных:", error);
+          alert("Произошла ошибка при загрузке данных товара");
+        });
+    }
+
+    // Функция дешифрования зашифрованных данных товара (если требуется)
+    function decryptData(encryptedData) {
+      const secretKey = "GlovimPlayeSecretKey";
+      const bytes = CryptoJS.AES.decrypt(encryptedData, secretKey);
+      return JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+    }
+
+    // Функция обработки платежа с баланса покупателя
+    function processPaymentWithBalance() {
+      return new Promise((resolve, reject) => {
+        const buyerId = firebase.auth().currentUser.uid;
+        firebase.database().ref('users/' + buyerId).once('value')
+          .then(snap => {
+            let buyerData = snap.val();
+            let balance = parseFloat(buyerData.balance) || 0;
+            
+            if (balance < currentProductPrice) {
+              reject("Недостаточно средств на балансе");
+            } else {
+              let newBalance = balance - currentProductPrice;
+              firebase.database().ref('users/' + buyerId).update({ balance: newBalance })
+                .then(() => {
+                  console.log("Баланс покупателя обновлён:", newBalance);
+                  resolve();
+                })
+                .catch(err => reject(err));
+            }
+          })
+          .catch(err => reject(err));
+      });
+    }
+
+    // Открытие модального окна подтверждения покупки
+    function openModal() {
+      document.getElementById("confirmationModal").style.display = "flex";
+    }
+    
+    function closeModal() {
+      document.getElementById("confirmationModal").style.display = "none";
+    }
+
+    // Модальное окно для недостатка средств
+    function openInsufficientModal() {
+      document.getElementById("insufficientModal").style.display = "flex";
+    }
+    
+    function closeInsufficientModal() {
+      document.getElementById("insufficientModal").style.display = "none";
+    }
+    
+    function goToTopUp() {
+      window.location.href = "balance.html";
+    }
+
+    // Обработка оформления заказа
+    document.getElementById("checkoutBtn").addEventListener("click", function(e) {
+      e.preventDefault();
+      if (!currentSeller) {
+        alert("Ошибка: информация о продавце не загружена.");
+        return;
+      }
+      openModal();
+    });
+
+    // Подтверждение покупки с последующим перенаправлением в чат с продавцом
+    function confirmPurchase() {
+      closeModal();
+      
+      processPaymentWithBalance()
+        .then(() => {
+          const orderData = {
+            productId: currentProductId,
+            productName: currentProductName,
+            productPrice: currentProductPrice,
+            sellerId: currentSeller,
+            sellerName: document.getElementById("sellerName").textContent,
+            buyerId: firebase.auth().currentUser.uid,
+            buyerEmail: firebase.auth().currentUser.email,
+            paymentMethod: "balance",
+            status: "pending",
+            createdAt: firebase.database.ServerValue.TIMESTAMP,
+            updatedAt: firebase.database.ServerValue.TIMESTAMP
+          };
+          
+          return firebase.database().ref('orders').push(orderData);
+        })
+        .then(snapshot => {
+          const orderId = snapshot.key;
+          console.log("Заказ создан, orderId:", orderId);
+          
+          // Расчет комиссии и выплаты продавцу
+          const commission = currentProductPrice * 0.05;
+          const sellerPayment = currentProductPrice - commission;
+          
+          // Обновление баланса продавца
+          return Promise.all([
+            firebase.database().ref('users/' + currentSeller).once('value'),
+            firebase.database().ref('adminBalance').once('value'),
+            firebase.database().ref('products/' + currentProductId).remove()
+          ])
+          .then(([sellerSnap, adminSnap]) => {
+            const sellerData = sellerSnap.val();
+            let sellerBalance = parseFloat(sellerData.balance) || 0;
+            sellerBalance += sellerPayment;
+            
+            let adminBalance = parseFloat(adminSnap.val()) || 0;
+            adminBalance += commission;
+            
+            return Promise.all([
+              firebase.database().ref('users/' + currentSeller).update({ balance: sellerBalance }),
+              firebase.database().ref('adminBalance').set(adminBalance)
+            ]);
+          });
+        })
+        .then(() => {
+          // Перенаправление в чат с продавцом
+          window.location.href = `chat.html?seller=${currentSeller}&orderId=${orderId}`;
+        })
+        .catch(error => {
+          console.error("Платеж не выполнен:", error);
+          if (error === "Недостаточно средств на балансе") {
+            openInsufficientModal();
+          } else {
+            alert("Ошибка при оформлении заказа: " + error.message);
+          }
+        });
+    }
+
+    // Функция показа зашифрованных данных товара (если требуется)
+    function showSensitiveData() {
+      firebase.database().ref('products/' + currentProductId).once('value')
+        .then(snapshot => {
+          const product = snapshot.val();
+          if (!product || !product.encryptedData) {
+            alert("Нет дополнительных данных для отображения.");
+            window.location.href = "chat.html";
+            return;
+          }
+          
+          const sensitiveObj = decryptData(product.encryptedData);
+          document.getElementById("sensitiveDataContent").textContent = sensitiveObj.sensitiveData;
+          document.getElementById("sensitiveDataModal").style.display = "flex";
+        })
+        .catch(error => {
+          console.error("Ошибка при получении данных:", error);
+          alert("Ошибка при получении дополнительных данных.");
+          window.location.href = "chat.html";
+        });
+    }
+    
+    function closeSensitiveModal() {
+      document.getElementById("sensitiveDataModal").style.display = "none";
+      window.location.href = "chat.html";
+    }
+
+  // Функция для перехода на страницу просмотра аккаунта продавца
+  function openSellerModal() {
+    window.location.href = "seller.html?id=" + currentSeller;
+  }
+  
+  // Настройка переключателя темы
+  function setupThemeToggle() {
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+    
+    function applyTheme(theme) {
+      if (theme === 'dark') {
+        document.body.classList.add('dark-mode');
+        themeIcon.className = "fas fa-moon";
+        localStorage.setItem('theme', 'dark');
+      } else {
+        document.body.classList.remove('dark-mode');
+        themeIcon.className = "fas fa-sun";
+        localStorage.setItem('theme', 'light');
+      }
+    }
+    
+    themeToggle.addEventListener('click', () => {
+      const currentTheme = localStorage.getItem('theme') || 'light';
+      applyTheme(currentTheme === 'light' ? 'dark' : 'light');
+    });
+    
+    // Применяем сохраненную тему при загрузке
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    applyTheme(savedTheme);
+  }
+  
+  // Закрытие модальных окон при клике вне их
+  window.addEventListener('click', function(event) {
+    if (event.target.classList.contains('modal')) {
+      event.target.style.display = 'none';
+    }
+  });
+</script>
+</body>
+</html>

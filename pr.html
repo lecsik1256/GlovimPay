@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>GlovimPay</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+  <style>
+    :root {
+      --bg: #121212;
+      --panel: #1e1e1e;
+      --text: #e0e0e0;
+      --muted: #888888;
+      --accent: #ff6b6b;
+      --accent-hover: #e05555;
+      --border: #333333;
+      --radius: 12px;
+      --gap: 16px;
+      --trans: 0.3s;
+      --shadow: rgba(0,0,0,0.7);
+    }
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Montserrat', sans-serif;
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+    img {
+      display: block;
+      max-width: 100%;
+    }
+
+    /* header */
+    header {
+      background: var(--panel);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--gap);
+      box-shadow: 0 2px 4px var(--shadow);
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .logo img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 2px solid var(--accent);
+    }
+    .logo h1 {
+      font-size: 1.4rem;
+      font-weight: 600;
+    }
+    nav.desktop-nav a {
+      margin-left: var(--gap);
+      padding: 6px 12px;
+      border-radius: var(--radius);
+      transition: background var(--trans);
+    }
+    nav.desktop-nav a:hover {
+      background: rgba(255,107,107,0.2);
+    }
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: var(--gap);
+    }
+    .search-box {
+      position: relative;
+    }
+    .search-box input {
+      padding: 8px 36px 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      background: var(--bg);
+      color: var(--text);
+      transition: border var(--trans);
+    }
+    .search-box input:focus {
+      border-color: var(--accent);
+    }
+    .search-box .fa-search {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      cursor: pointer;
+    }
+    .btn-icon {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1.2rem;
+      color: var(--muted);
+      transition: color var(--trans);
+    }
+    .btn-icon:hover {
+      color: var(--accent);
+    }
+
+    /* mobile header */
+    .mobile-header {
+      display: none;
+      background: var(--panel);
+      padding: var(--gap);
+      flex-direction: column;
+      gap: var(--gap);
+      box-shadow: 0 2px 4px var(--shadow);
+    }
+    .mobile-header .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .mobile-header .search-box {
+      margin-top: var(--gap);
+    }
+
+    /* sidebar */
+    .sidebar {
+      width: 240px;
+      background: var(--panel);
+      position: fixed;
+      top: 0; bottom: 0; left: 0;
+      padding: var(--gap) 8px;
+      box-shadow: 2px 0 4px var(--shadow);
+    }
+    .sidebar nav a {
+      display: flex;
+      align-items: center;
+      padding: 10px 16px;
+      margin: 8px 0;
+      border-radius: var(--radius);
+      transition: background var(--trans);
+    }
+    .sidebar nav a:hover {
+      background: rgba(255,107,107,0.2);
+    }
+    .sidebar .nav-icon {
+      width: 30px;
+      text-align: center;
+      margin-right: 8px;
+    }
+    .sidebar .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 2px solid var(--accent);
+      object-fit: cover;
+    }
+
+    /* main */
+    .main-content {
+      margin-left: 240px;
+      padding: var(--gap);
+    }
+
+    /* banner */
+    .banner {
+      height: 200px;
+      background: #333;
+      border-radius: var(--radius);
+      margin-bottom: var(--gap);
+      overflow: hidden;
+      position: relative;
+    }
+    .banner-track {
+      display: flex;
+      width: 300%;
+      height: 100%;
+      transition: transform 0.6s ease;
+    }
+    .banner-slide {
+      width: calc(100% / 3);
+      background-size: cover;
+      background-position: center;
+    }
+
+    /* categories */
+    .categories {
+      display: flex;
+      overflow-x: auto;
+      gap: var(--gap);
+      margin-bottom: var(--gap);
+      padding-bottom: var(--gap);
+    }
+    .categories a {
+      flex: 0 0 auto;
+      padding: 8px 16px;
+      background: var(--panel);
+      border-radius: var(--radius);
+      transition: background var(--trans);
+    }
+    .categories a:hover {
+      background: rgba(255,107,107,0.2);
+    }
+
+    /* products */
+    .products__grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px,1fr));
+      gap: var(--gap);
+      margin-bottom: var(--gap);
+    }
+    .product-card {
+      background: var(--panel);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: 0 2px 6px var(--shadow);
+      transition: transform var(--trans), box-shadow var(--trans);
+      cursor: pointer;
+      position: relative;
+    }
+    .product-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 4px 12px var(--shadow);
+    }
+    .product-card img {
+      width: 100%;
+      height: 140px;
+      object-fit: cover;
+    }
+    .product-card h3 {
+      margin: 12px;
+      font-size: 1.1rem;
+    }
+    .product-card .category {
+      margin: 0 12px 8px;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+    .price-add {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      background: var(--bg);
+    }
+    .price-add .price {
+      font-weight: 600;
+      color: var(--accent);
+    }
+    .price-add button {
+      background: var(--accent);
+      color: var(--on-primary, #fff);
+      border: none;
+      padding: 6px 12px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: background var(--trans);
+    }
+    .price-add button:hover {
+      background: var(--accent-hover);
+    }
+    .product-likes {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: var(--accent);
+      color: #fff;
+      padding: 4px 8px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background var(--trans);
+    }
+    .product-likes:hover {
+      background: var(--accent-hover);
+    }
+
+    /* footer */
+    footer {
+      background: var(--panel);
+      color: var(--muted);
+      text-align: center;
+      padding: var(--gap);
+      margin-top: var(--gap);
+    }
+
+    /* responsive */
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .main-content { margin-left: 0; padding: 8px; }
+      nav.desktop-nav { display: none; }
+      .mobile-header { display: flex; }
+      .actions .btn-icon.menu { display: inline-block; }
+      .banner { height: 150px; }
+      .products__grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px,1fr));
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Сайдбар ПК -->
+  <div class="sidebar">
+    <div class="logo">
+      <img src="images/logo.png" alt="Logo">
+      <h1>GlovimPay</h1>
+    </div>
+    <nav>
+      <a href="index.html"><span class="nav-icon"><i class="fas fa-home"></i></span>Главная</a>
+      <a href="catalog.html"><span class="nav-icon"><i class="fas fa-th-list"></i></span>Каталог</a>
+      <a href="add.html"><span class="nav-icon"><i class="fas fa-plus"></i></span>Продать</a>
+      <a href="/chat"><span class="nav-icon"><i class="fas fa-comment-dots"></i></span>Чат</a>
+      <a href="/profile.html" class="profile-btn">
+        <span class="nav-icon"><img src="images/avatar.jpg" class="avatar"></span>Профиль
+      </a>
+    </nav>
+  </div>
+
+  <!-- Мобильный хедер -->
+  <header class="mobile-header">
+    <div class="top">
+      <div class="logo"><img src="images/logo.png"><h1>GlovimPay</h1></div>
+      <button id="mobileMenuBtn" class="btn-icon menu"><i class="fas fa-bars"></i></button>
+    </div>
+    <div class="search-box">
+      <input type="text" class="search-input" placeholder="Поиск игр, приложений...">
+      <i class="fas fa-search"></i>
+    </div>
+  </header>
+
+  <!-- Основной контент -->
+  <div class="main-content">
+    <!-- Десктопный хедер -->
+    <header>
+      <div class="logo"><img src="images/logo.png"><h1>GlovimPay</h1></div>
+      <nav class="desktop-nav">
+        <a href="index.html">Главная</a>
+        <a href="catalog.html">Каталог</a>
+        <a href="add.html">Продать</a>
+        <a href="/chat">Чат</a>
+        <a href="/profile.html">Профиль</a>
+      </nav>
+      <div class="actions">
+        <div class="search-box">
+          <input type="text" class="search-input" placeholder="Поиск игр, приложений...">
+          <i class="fas fa-search"></i>
+        </div>
+        <button id="themeToggle" class="btn-icon"><i class="fas fa-moon" id="themeIcon"></i></button>
+        <button id="mobileMenuBtn" class="btn-icon menu"><i class="fas fa-bars"></i></button>
+      </div>
+    </header>
+
+    <!-- Слайдер -->
+    <div class="banner">
+      <div class="banner-track" id="banner-track">
+        <div class="banner-slide" style="background-image:url('images/baner1.jpg')"></div>
+        <div class="banner-slide" style="background-image:url('images/baner5.jpg')"></div>
+        <div class="banner-slide" style="background-image:url('images/logo.png')"></div>
+      </div>
+    </div>
+
+    <!-- Категории -->
+    <div class="categories">
+      <a href="/electronics">Донат</a>
+      <a href="/clothes">Скины</a>
+      <a href="/shoes">Подписки</a>
+      <a href="/tools">Аккаунты</a>
+      <a href="/games">Игры</a>
+      <a href="/other">Прочее</a>
+    </div>
+
+    <!-- Топ товары -->
+    <section class="products">
+      <h2>Топ товары</h2>
+      <div id="productContainer" class="products__grid"></div>
+    </section>
+  </div>
+
+  <!-- Мобильное меню -->
+  <nav id="mobileMenu" class="mobile-nav hidden">
+    <a href="index.html">Главная</a>
+    <a href="catalog.html">Каталог</a>
+    <a href="add.html">Продать</a>
+    <a href="/chat">Чат</a>
+    <a href="/profile.html">Профиль</a>
+  </nav>
+
+  <!-- Футер -->
+  <footer>
+    &copy; 2025 GlovimPay. Все права защищены.
+  </footer>
+
+  <script>
+    // Инициализация Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyAhn2H2BExFFf7GO2k_YDfrwPiV_cYdUBg",
+      authDomain: "glovimplaye-b1023.firebaseapp.com",
+      databaseURL: "https://glovimplaye-b1023-default-rtdb.firebaseio.com",
+      projectId: "glovimplaye-b1023",
+      storageBucket: "glovimplaye-b1023.appspot.com",
+      messagingSenderId: "553440591519",
+      appId: "1:553440591519:web:b7be45a9253689f322acaa"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+
+    // Тема
+    function applyTheme(theme) {
+      document.body.classList.toggle('light', theme === 'light');
+      document.getElementById('themeIcon').className =
+        theme === 'light' ? 'fas fa-sun' : 'fas fa-moon';
+      localStorage.setItem('theme', theme);
+    }
+    document.getElementById('themeToggle').onclick = () => {
+      const t = localStorage.getItem('theme') === 'light' ? 'dark' : 'light';
+      applyTheme(t);
+    };
+    applyTheme(localStorage.getItem('theme') || 'dark');
+
+    // Mobile menu toggle
+    document.querySelectorAll('#mobileMenuBtn').forEach(btn =>
+      btn.onclick = () => document.getElementById('mobileMenu').classList.toggle('hidden')
+    );
+
+    // Слайдер
+    let idx = 0;
+    const slides = document.getElementById('banner-track');
+    const total = slides.children.length;
+    setInterval(() => {
+      idx = (idx + 1) % total;
+      slides.style.transform = `translateX(-${(100/total)*idx}%)`;
+    }, 5000);
+
+    // Поиск
+    const items = [ /* ваш массив игр/приложений */ ];
+    function showSearch(query, container) {
+      container.innerHTML = '';
+      if (!query) return container.style.display = 'none';
+      const res = items.filter(i =>
+        i.name.toLowerCase().includes(query) ||
+        i.category.toLowerCase().includes(query)
+      );
+      if (!res.length) {
+        container.innerHTML = '<div class="no-results">Ничего не найдено</div>';
+      } else res.forEach(i => {
+        const div = document.createElement('div');
+        div.className = 'search-result-item';
+        div.innerHTML = `<img src="${i.image}"><div><strong>${i.name}</strong><br>${i.category}</div>`;
+        div.onclick = () => window.location.href = i.link;
+        container.appendChild(div);
+      });
+      container.style.display = 'block';
+    }
+    document.querySelectorAll('.search-box input').forEach(input => {
+      const container = input.parentNode.querySelector('.search-results') ||
+        (() => {
+          const d = document.createElement('div');
+          d.className = 'search-results';
+          input.parentNode.appendChild(d);
+          return d;
+        })();
+      input.oninput = () => showSearch(input.value.trim(), container);
+    });
+
+    // Загрузка пользователей
+    const usersRow = document.createElement('div');
+    usersRow.className = 'users-row';
+    document.querySelector('.main-content').append(usersRow);
+    firebase.database().ref('users').once('value')
+      .then(snap => snap.forEach(u => {
+        const data = u.val();
+        const a = document.createElement('a');
+        a.className = 'user-card';
+        a.href = `/seller.html?id=${u.key}`;
+        a.innerHTML = `<img class="user-avatar" src="${data.avatar||'images/avatar.jpg'}"><div class="user-name">${data.nickname||'Без ника'}</div>`;
+        usersRow.append(a);
+      }));
+
+    // Загрузка товаров
+    const productContainer = document.getElementById('productContainer');
+    firebase.database().ref('products').on('value', snap => {
+      productContainer.innerHTML = '';
+      const products = snap.val() || {};
+      Object.entries(products).forEach(([key, p]) => {
+        const likes = p.likes||0;
+        const card = document.createElement('div');
+        card.className = 'product-card';
+        card.innerHTML = `
+          <img src="${p.photoURLs?.[0]||'https://via.placeholder.com/300x200'}">
+          <div class="product-likes" onclick="handleLike(event,'${key}',${likes})">
+            <i class="fas fa-heart"></i><span>${likes}</span>
+          </div>
+          <h3>${p.name}</h3>
+          <p class="category">${p.category}</p>
+          <div class="price-add">
+            <span class="price">${p.price} ₽</span>
+            <button onclick="redirectToDetails(event,'${key}')">Купить</button>
+          </div>`;
+        productContainer.append(card);
+      });
+    });
+    window.redirectToDetails = (e, id) => {
+      e.stopPropagation();
+      window.location = `/product-details.html?id=${id}`;
+    };
+    window.handleLike = (e, id, cur) => {
+      e.stopPropagation();
+      if (localStorage.getItem('liked_'+id)) return alert('Уже лайкали');
+      firebase.database().ref('products/'+id).update({likes:cur+1});
+      localStorage.setItem('liked_'+id, '1');
+    };
+
+    // Скрытие поиска
+    document.addEventListener('click', e => {
+      if (!e.target.closest('.search-box')) {
+        document.querySelectorAll('.search-results').forEach(d => d.style.display='none');
+      }
+    });
+  </script>
+</body>
+</html>

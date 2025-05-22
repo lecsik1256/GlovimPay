@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Пополнить баланс | GlovimPlaye</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <!-- Firebase (замените версию, если требуется) -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  
+  <!-- Font Awesome для иконок (необязательно) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+
+  <style>
+    body {
+      margin: 0; 
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background: #f7f7f7;
+      color: #333;
+    }
+    header {
+      background: #1f1f1f;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    }
+    header h1 {
+      margin: 0;
+      font-size: 24px;
+      color: #ff7f50;
+    }
+    .container {
+      max-width: 600px;
+      margin: 30px auto;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      padding: 20px;
+    }
+    h2 {
+      margin-top: 0;
+      color: #ff7f50;
+      text-align: center;
+    }
+    form {
+      margin-top: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: bold;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 12px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      background: #ff7f50;
+      border: none;
+      color: #fff;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #ff4500;
+    }
+    .message {
+      margin-top: 10px;
+      padding: 10px;
+      background: #e7f3fe;
+      border: 1px solid #b3d4fc;
+      border-radius: 4px;
+      display: none;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Пополнить баланс</h1>
+</header>
+
+<div class="container">
+  <h2>Создать заявку на пополнение</h2>
+  
+  <!-- Блок предупреждения можно убрать, т.к. вход выполняется автоматически -->
+  <form id="topUpForm">
+    <!-- Сумма для пополнения -->
+    <label for="amountInput">Сумма (₽)</label>
+    <input type="number" id="amountInput" placeholder="Введите сумму" min="1" required>
+    
+    <!-- Способ оплаты (пример) -->
+    <label for="methodSelect">Способ оплаты</label>
+    <select id="methodSelect">
+      <option value="card">Карта</option>
+      <option value="qiwi">QIWI</option>
+      <option value="crypto">Криптовалюта</option>
+      <option value="p2p">Telegram P2P</option>
+    </select>
+    
+    <button type="submit">Создать заявку</button>
+  </form>
+  
+  <div id="message" class="message"></div>
+</div>
+
+<script>
+  // Firebase конфигурация (замените на свои данные)
+  var firebaseConfig = {
+    apiKey: "AIzaSyAhn2H...",
+    authDomain: "glovimplaye-b1023.firebaseapp.com",
+    databaseURL: "https://glovimplaye-b1023-default-rtdb.firebaseio.com",
+    projectId: "glovimplaye-b1023",
+    storageBucket: "glovimplaye-b1023.firebasestorage.app",
+    messagingSenderId: "553440591519",
+    appId: "1:553440591519:web:b7be45a9253689f322acaa"
+  };
+  firebase.initializeApp(firebaseConfig);
+
+  let currentUser = null;
+
+  // Проверка авторизации и автоматический вход анонимно
+  firebase.auth().onAuthStateChanged(function(user) {
+    if (!user) {
+      // Если пользователь не авторизован, выполняем анонимный вход
+      firebase.auth().signInAnonymously().catch(function(error) {
+        console.error("Ошибка при анонимном входе:", error);
+        showMessage("Ошибка при входе: " + error.message, true);
+      });
+    } else {
+      // Если пользователь уже авторизован (или вошёл анонимно), показываем форму
+      currentUser = user;
+      document.getElementById('topUpForm').style.display = 'block';
+    }
+  });
+
+  // Обработка формы создания заявки
+  document.getElementById('topUpForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    if (!currentUser) {
+      showMessage("Ошибка: пользователь не авторизован!", true);
+      return;
+    }
+    
+    let amount = parseFloat(document.getElementById('amountInput').value);
+    let method = document.getElementById('methodSelect').value;
+    
+    if (isNaN(amount) || amount <= 0) {
+      showMessage("Пожалуйста, введите корректную сумму.", true);
+      return;
+    }
+
+    // Создаём заявку в узле topUpRequests
+    let requestData = {
+      userId: currentUser.uid,
+      amount: amount,
+      method: method,
+      status: "pending",
+      createdAt: firebase.database.ServerValue.TIMESTAMP
+    };
+    
+    firebase.database().ref('topUpRequests').push(requestData)
+      .then(() => {
+        showMessage("Заявка на пополнение успешно создана. Ожидайте подтверждения от администратора.");
+        // Очищаем поля формы
+        document.getElementById('amountInput').value = "";
+        document.getElementById('methodSelect').value = "card";
+      })
+      .catch(err => {
+        showMessage("Ошибка при создании заявки: " + err.message, true);
+      });
+  });
+
+  function showMessage(msg, isError=false) {
+    let msgDiv = document.getElementById('message');
+    msgDiv.style.display = 'block';
+    msgDiv.style.background = isError ? '#f8d7da' : '#e7f3fe';
+    msgDiv.style.borderColor = isError ? '#f5c2c7' : '#b3d4fc';
+    msgDiv.innerText = msg;
+  }
+</script>
+
+</body>
+</html>

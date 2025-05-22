@@ -1,0 +1,1911 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>GlovimPay - Платформа цифровых товаров</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="GlovimPay - безопасная площадка для покупки и продажи цифровых товаров, игровых предметов и аккаунтов">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Фавикон -->
+  <link rel="icon" type="image/png" href="images/looooooooooo1212.jpg" sizes="32x32">
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+  <style>
+    /* Основные переменные */
+    :root {
+      --primary: #6C5CE7;
+      --primary-dark: #5649C0;
+      --secondary: #00B894;
+      --accent: #FD79A8;
+      --dark: #2D3436;
+      --light: #F5F6FA;
+      --gray: #636E72;
+      --light-gray: #DFE6E9;
+      --success: #00B894;
+      --warning: #FDCB6E;
+      --danger: #D63031;
+      --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      --border-radius: 12px;
+      --sidebar-width: 280px;
+    }
+    
+    /* Общие стили */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+    
+    body {
+      background-color: var(--light);
+      color: var(--dark);
+      line-height: 1.6;
+      transition: var(--transition);
+    }
+    
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+    
+    button, input, textarea {
+      font-family: inherit;
+      outline: none;
+    }
+    
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+    
+    .section-title {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      color: var(--dark);
+      position: relative;
+      padding-left: 15px;
+    }
+    
+    .section-title::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 5px;
+      bottom: 5px;
+      width: 4px;
+      background: var(--primary);
+      border-radius: 2px;
+    }
+    
+    /* Сайдбар */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: var(--sidebar-width);
+      background: white;
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.05);
+      z-index: 100;
+      padding: 20px 0;
+      display: flex;
+      flex-direction: column;
+      transition: var(--transition);
+    }
+    
+    .sidebar-header {
+      padding: 0 20px 20px;
+      border-bottom: 1px solid var(--light-gray);
+      margin-bottom: 20px;
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .logo-img {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      object-fit: cover;
+    }
+    
+    .logo-text {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    
+    .nav-menu {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0 10px;
+    }
+    
+    .nav-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 16px;
+      margin: 5px 0;
+      border-radius: var(--border-radius);
+      color: var(--gray);
+      transition: var(--transition);
+    }
+    
+    .nav-item:hover, .nav-item.active {
+      background: rgba(108, 92, 231, 0.1);
+      color: var(--primary);
+    }
+    
+    .nav-icon {
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 12px;
+      font-size: 18px;
+    }
+    
+    .nav-text {
+      font-weight: 500;
+      font-size: 15px;
+    }
+    
+    .sidebar-footer {
+      padding: 20px;
+      border-top: 1px solid var(--light-gray);
+    }
+    
+    .user-profile {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid white;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .user-info {
+      flex: 1;
+    }
+    
+    .user-name {
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--dark);
+    }
+    
+    .user-email {
+      font-size: 12px;
+      color: var(--gray);
+    }
+    
+    /* Основной контент */
+    .main-content {
+      margin-left: var(--sidebar-width);
+      padding: 20px 0;
+      transition: var(--transition);
+    }
+    
+    /* Хедер */
+    .main-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 15px 30px;
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--card-shadow);
+      margin-bottom: 30px;
+    }
+    
+    .search-box {
+      position: relative;
+      flex: 1;
+      max-width: 500px;
+    }
+    
+    .search-input {
+      width: 100%;
+      padding: 12px 20px;
+      padding-right: 45px;
+      border: 1px solid var(--light-gray);
+      border-radius: var(--border-radius);
+      font-size: 14px;
+      transition: var(--transition);
+    }
+    
+    .search-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.2);
+    }
+    
+    .search-btn {
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--gray);
+      cursor: pointer;
+      font-size: 16px;
+    }
+    
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    
+    .theme-toggle, .notification-btn, .profile-btn {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: var(--light);
+      color: var(--gray);
+      border: none;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    
+    .theme-toggle:hover, .notification-btn:hover, .profile-btn:hover {
+      background: rgba(108, 92, 231, 0.1);
+      color: var(--primary);
+    }
+    
+    .notification-btn {
+      position: relative;
+    }
+    
+    .notification-badge {
+      position: absolute;
+      top: -2px;
+      right: -2px;
+      width: 18px;
+      height: 18px;
+      background: var(--danger);
+      color: white;
+      border-radius: 50%;
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid white;
+    }
+    
+    .profile-btn img {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    
+    /* Баннер */
+    .hero-banner {
+      position: relative;
+      width: 100%;
+      height: 360px;
+      border-radius: var(--border-radius);
+      overflow: hidden;
+      margin-bottom: 30px;
+    }
+    
+    .banner-slide {
+      width: 100%;
+      height: 100%;
+      background-size: cover;
+      background-position: center;
+      display: none;
+    }
+    
+    .banner-slide.active {
+      display: block;
+    }
+    
+    .banner-content {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 30px;
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+      color: white;
+    }
+    
+    .banner-title {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    
+    .banner-text {
+      font-size: 16px;
+      margin-bottom: 20px;
+      max-width: 600px;
+    }
+    
+    .banner-btn {
+      display: inline-block;
+      padding: 10px 24px;
+      background: var(--primary);
+      color: white;
+      border-radius: var(--border-radius);
+      font-weight: 500;
+      transition: var(--transition);
+    }
+    
+    .banner-btn:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+    
+    .banner-dots {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 10px;
+    }
+    
+    .banner-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.5);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    
+    .banner-dot.active {
+      background: white;
+      width: 30px;
+      border-radius: 5px;
+    }
+    
+    /* Категории */
+    .categories {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 30px;
+      overflow-x: auto;
+      padding-bottom: 10px;
+      scrollbar-width: none;
+    }
+    
+    .categories::-webkit-scrollbar {
+      display: none;
+    }
+    
+    .category-btn {
+      flex: 0 0 auto;
+      padding: 10px 20px;
+      background: white;
+      border-radius: 30px;
+      font-weight: 500;
+      color: var(--gray);
+      border: 1px solid var(--light-gray);
+      transition: var(--transition);
+      white-space: nowrap;
+    }
+    
+    .category-btn:hover, .category-btn.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+      box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3);
+    }
+    
+    /* Промо-блоки */
+    .promo-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    
+    .promo-card {
+      height: 180px;
+      border-radius: var(--border-radius);
+      overflow: hidden;
+      position: relative;
+      box-shadow: var(--card-shadow);
+      transition: var(--transition);
+    }
+    
+    .promo-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+    
+    .promo-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .promo-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 20px;
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+      color: white;
+    }
+    
+    .promo-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+    
+    /* Товары */
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+    
+    .product-card {
+      background: white;
+      border-radius: var(--border-radius);
+      overflow: hidden;
+      box-shadow: var(--card-shadow);
+      transition: var(--transition);
+      position: relative;
+    }
+    
+    .product-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+    
+    .product-badge {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      padding: 4px 10px;
+      background: var(--accent);
+      color: white;
+      font-size: 12px;
+      font-weight: 500;
+      border-radius: 4px;
+      z-index: 1;
+    }
+    
+    .product-image {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+      background-color: #f5f5f5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ccc;
+      font-size: 14px;
+    }
+    
+    .product-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .product-info {
+      padding: 15px;
+    }
+    
+    .product-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--dark);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    
+    .product-category {
+      display: inline-block;
+      padding: 3px 8px;
+      background: var(--light);
+      color: var(--gray);
+      font-size: 12px;
+      border-radius: 4px;
+      margin-bottom: 10px;
+    }
+    
+    .product-price {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 10px;
+    }
+    
+    .price {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    
+    .old-price {
+      font-size: 14px;
+      color: var(--gray);
+      text-decoration: line-through;
+      margin-right: 5px;
+    }
+    
+    .add-to-cart {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: var(--primary);
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    
+    .add-to-cart:hover {
+      background: var(--primary-dark);
+      transform: scale(1.1);
+    }
+    
+    .product-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 15px;
+      padding-top: 10px;
+      border-top: 1px solid var(--light-gray);
+    }
+    
+    .product-rating {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 14px;
+      color: var(--gray);
+    }
+    
+    .product-rating i {
+      color: var(--warning);
+    }
+    
+    .product-likes {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 14px;
+      color: var(--gray);
+    }
+    
+    .product-likes i {
+      color: var(--danger);
+    }
+    
+    /* Продавцы */
+    .sellers-slider {
+      margin-bottom: 30px;
+    }
+    
+    .sellers-container {
+      display: flex;
+      gap: 15px;
+      overflow-x: auto;
+      padding-bottom: 15px;
+      scrollbar-width: none;
+    }
+    
+    .sellers-container::-webkit-scrollbar {
+      display: none;
+    }
+    
+    .seller-card {
+      flex: 0 0 auto;
+      width: 120px;
+      text-align: center;
+    }
+    
+    .seller-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid white;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      margin-bottom: 10px;
+      transition: var(--transition);
+    }
+    
+    .seller-card:hover .seller-avatar {
+      transform: scale(1.05);
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+    }
+    
+    .seller-name {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--dark);
+    }
+    
+    .seller-rating {
+      font-size: 12px;
+      color: var(--warning);
+      margin-top: 5px;
+    }
+    
+    /* Футер */
+    .footer {
+      background: var(--dark);
+      color: white;
+      padding: 50px 0 20px;
+    }
+    
+    .footer-content {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 30px;
+      margin-bottom: 30px;
+    }
+    
+    .footer-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    
+    .footer-logo img {
+      width: 40px;
+      height: 40px;
+    }
+    
+    .footer-logo-text {
+      font-size: 20px;
+      font-weight: 700;
+    }
+    
+    .footer-about {
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--light-gray);
+      margin-bottom: 20px;
+    }
+    
+    .footer-social {
+      display: flex;
+      gap: 15px;
+    }
+    
+    .social-link {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      transition: var(--transition);
+    }
+    
+    .social-link:hover {
+      background: var(--primary);
+      transform: translateY(-3px);
+    }
+    
+    .footer-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      position: relative;
+      padding-bottom: 10px;
+    }
+    
+    .footer-title::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 40px;
+      height: 2px;
+      background: var(--primary);
+    }
+    
+    .footer-links {
+      list-style: none;
+    }
+    
+    .footer-links li {
+      margin-bottom: 12px;
+    }
+    
+    .footer-links a {
+      color: var(--light-gray);
+      font-size: 14px;
+      transition: var(--transition);
+      display: block;
+    }
+    
+    .footer-links a:hover {
+      color: var(--primary);
+      padding-left: 5px;
+    }
+    
+    .footer-contact-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 15px;
+      color: var(--light-gray);
+      font-size: 14px;
+    }
+    
+    .footer-contact-item i {
+      color: var(--primary);
+    }
+    
+    .footer-bottom {
+      text-align: center;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      font-size: 14px;
+      color: var(--light-gray);
+    }
+    
+    /* Мобильная навигация */
+    .mobile-nav {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+      z-index: 100;
+    }
+    
+    body.dark-mode .mobile-nav {
+      background: #1E1E1E;
+    }
+    
+    .mobile-nav-container {
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+    }
+    
+    .mobile-nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: var(--gray);
+      font-size: 12px;
+      gap: 5px;
+      padding: 5px 10px;
+      border-radius: 8px;
+      transition: var(--transition);
+    }
+    
+    .mobile-nav-item i {
+      font-size: 20px;
+    }
+    
+    .mobile-nav-item.active, .mobile-nav-item:hover {
+      color: var(--primary);
+      background: rgba(108, 92, 231, 0.1);
+    }
+    
+    /* Стили для модального окна уведомлений */
+    .notification-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--light-gray);
+      margin-bottom: 20px;
+    }
+    
+    .tab-btn {
+      padding: 10px 20px;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      font-weight: 500;
+      color: var(--gray);
+      transition: var(--transition);
+    }
+    
+    .tab-btn.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+    
+    .notifications-list {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    
+    .notification-item {
+      padding: 12px 0;
+      border-bottom: 1px solid var(--light-gray);
+    }
+    
+    .notification-item:last-child {
+      border-bottom: none;
+    }
+    
+    .notification-item p {
+      margin-bottom: 5px;
+    }
+    
+    .notification-item small {
+      color: var(--gray);
+      font-size: 12px;
+    }
+    
+    .form-group {
+      margin-bottom: 15px;
+    }
+    
+    .form-input {
+      width: 100%;
+      padding: 10px 15px;
+      border: 1px solid var(--light-gray);
+      border-radius: var(--border-radius);
+      transition: var(--transition);
+    }
+    
+    .form-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.2);
+    }
+    
+    .btn {
+      padding: 10px 20px;
+      border-radius: var(--border-radius);
+      border: none;
+      cursor: pointer;
+      font-weight: 500;
+      transition: var(--transition);
+    }
+    
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background: var(--primary-dark);
+    }
+    
+    /* Модальное окно */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .modal-content {
+      background: white;
+      border-radius: var(--border-radius);
+      width: 90%;
+      max-width: 500px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      animation: modalFadeIn 0.3s ease;
+    }
+    
+    body.dark-mode .modal-content {
+      background: #1E1E1E;
+    }
+    
+    @keyframes modalFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .modal-header {
+      padding: 20px;
+      border-bottom: 1px solid var(--light-gray);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .modal-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--dark);
+    }
+    
+    body.dark-mode .modal-title {
+      color: #e0e0e0;
+    }
+    
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 24px;
+      color: var(--gray);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    
+    .modal-close:hover {
+      color: var(--danger);
+    }
+    
+    .modal-body {
+      padding: 20px;
+    }
+    
+    body.dark-mode .form-input {
+      background: #2D2D2D;
+      border-color: #3D3D3D;
+      color: #e0e0e0;
+    }
+    
+    body.dark-mode .notification-item {
+      border-color: #3D3D3D;
+    }
+    
+    /* Адаптивность */
+    @media (max-width: 1200px) {
+      .products-grid {
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      }
+    }
+    
+    @media (max-width: 992px) {
+      .sidebar {
+        transform: translateX(-100%);
+      }
+      
+      .sidebar.active {
+        transform: translateX(0);
+      }
+      
+      .main-content {
+        margin-left: 0;
+      }
+      
+      .mobile-nav {
+        display: block;
+      }
+      
+      .menu-toggle {
+        display: block;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .hero-banner {
+        height: 280px;
+      }
+      
+      .banner-title {
+        font-size: 24px;
+      }
+      
+      .banner-text {
+        font-size: 14px;
+      }
+      
+      .promo-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .main-header {
+        padding: 15px;
+      }
+      
+      .search-box {
+        max-width: 200px;
+      }
+    }
+    
+    @media (max-width: 576px) {
+      .hero-banner {
+        height: 220px;
+      }
+      
+      .banner-content {
+        padding: 20px;
+      }
+      
+      .banner-title {
+        font-size: 20px;
+      }
+      
+      .products-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 15px;
+      }
+      
+      .product-image {
+        height: 120px;
+      }
+      
+      .product-title {
+        font-size: 14px;
+      }
+      
+      .price {
+        font-size: 16px;
+      }
+    }
+    
+    /* Темная тема */
+    body.dark-mode {
+      background: #121212;
+      color: #e0e0e0;
+    }
+    
+    body.dark-mode .sidebar,
+    body.dark-mode .main-header,
+    body.dark-mode .product-card,
+    body.dark-mode .promo-card,
+    body.dark-mode .category-btn {
+      background: #1E1E1E;
+      color: #e0e0e0;
+    }
+    
+    body.dark-mode .section-title {
+      color: #e0e0e0;
+    }
+    
+    body.dark-mode .nav-item {
+      color: #b0b0b0;
+    }
+    
+    body.dark-mode .nav-item:hover,
+    body.dark-mode .nav-item.active {
+      background: rgba(108, 92, 231, 0.2);
+      color: var(--primary);
+    }
+    
+    body.dark-mode .search-input {
+      background: #2D2D2D;
+      border-color: #3D3D3D;
+      color: #e0e0e0;
+    }
+    
+    body.dark-mode .product-title,
+    body.dark-mode .seller-name {
+      color: #e0e0e0;
+    }
+    
+    body.dark-mode .product-category {
+      background: #2D2D2D;
+      color: #b0b0b0;
+    }
+    
+    body.dark-mode .product-meta {
+      border-color: #3D3D3D;
+    }
+    
+    body.dark-mode .mobile-nav-item {
+      color: #b0b0b0;
+    }
+    
+    body.dark-mode .mobile-nav-item.active,
+    body.dark-mode .mobile-nav-item:hover {
+      color: var(--primary);
+    }
+    
+    /* Анимации */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    .fade-in {
+      animation: fadeIn 0.5s ease;
+    }
+    
+    /* Утилиты */
+    .text-primary {
+      color: var(--primary);
+    }
+    
+    .text-center {
+      text-align: center;
+    }
+    
+    .mb-20 {
+      margin-bottom: 20px;
+    }
+    
+    .mt-30 {
+      margin-top: 30px;
+    }
+    
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <!-- Сайдбар -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <a href="/" class="logo">
+        <img src="images/logo (2).png" alt="GlovimPay" class="logo-img">
+        <span class="logo-text">GlovimPay</span>
+      </a>
+    </div>
+    
+    <nav class="nav-menu">
+      <a href="/" class="nav-item active">
+        <div class="nav-icon"><i class="fas fa-home"></i></div>
+        <span class="nav-text">Главная</span>
+      </a>
+      <a href="product..html" class="nav-item">
+        <div class="nav-icon"><i class="fas fa-store"></i></div>
+        <span class="nav-text">Магазин</span>
+      </a>
+      <a href="catalog.html" class="nav-item">
+        <div class="nav-icon"><i class="fas fa-th-large"></i></div>
+        <span class="nav-text">Категории</span>
+      </a>
+      <a href="favorites.html" class="nav-item">
+        <div class="nav-icon"><i class="fas fa-heart"></i></div>
+        <span class="nav-text">Избранное</span>
+      </a>
+      <a href="/orders.html" class="nav-item">
+        <div class="nav-icon"><i class="fas fa-shopping-bag"></i></div>
+        <span class="nav-text">Мои заказы</span>
+      </a>
+      <a href="chat.html" class="nav-item">
+        <div class="nav-icon"><i class="fas fa-comment-dots"></i></div>
+        <span class="nav-text">Сообщения</span>
+        <span class="badge"></span>
+      </a>
+    </nav>
+    
+    <div class="sidebar-footer">
+      <div class="user-profile">
+        <img src="images/avatar.jpg" alt="User" class="user-avatar">
+        <div class="user-info">
+          <div class="user-name">Иван Иванов</div>
+          <div class="user-email">user@example.com</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+  
+  <!-- Основной контент -->
+  <main class="main-content">
+    <div class="container">
+      <!-- Хедер -->
+      <header class="main-header">
+        <button class="menu-toggle hidden-lg">
+          <i class="fas fa-bars"></i>
+        </button>
+        
+        <div class="search-box">
+          <input type="text" class="search-input" placeholder="Поиск товаров, игр, аккаунтов..." id="searchInput">
+          <button class="search-btn" id="searchButton"><i class="fas fa-search"></i></button>
+        </div>
+        
+        <div class="header-actions">
+          <button class="theme-toggle" id="themeToggle">
+            <i class="fas fa-sun" id="themeIcon"></i>
+          </button>
+          
+          <button class="notification-btn">
+            <i class="fas fa-bell"></i>
+            <span class="notification-badge">1</span>
+          </button>
+          
+          <a href="profile.html" class="mobile-nav-item">
+            <i class="fas fa-user"></i>
+            <span>Профиль</span>
+          </a>
+        </div>
+      </header>
+      
+      <!-- Баннер -->
+      <section class="hero-banner">
+        <div class="banner-slide active" style="background-image: url('images/banner1.jpg');">
+          <div class="banner-content">
+            <h2 class="banner-title">Лучшие игровые товары</h2>
+            <p class="banner-text">Покупайте и продавайте игровые предметы, аккаунты и валюту безопасно и выгодно</p>
+            <a href="#" class="banner-btn">Смотреть предложения</a>
+          </div>
+        </div>
+        
+        <div class="banner-slide" style="background-image: url('images/banner2.jpg');">
+          <div class="banner-content">
+            <h2 class="banner-title">Скидки до 50%</h2>
+            <p class="banner-text">Только этой недели специальные предложения на популярные товары</p>
+            <a href="#" class="banner-btn">Воспользоваться скидкой</a>
+          </div>
+        </div>
+        
+        <div class="banner-slide" style="background-image: url('images/ChatGPT\ Image\ 9\ апр.\ 2025\ г.\,\ 19_52_15.png');">
+          <div class="banner-content">
+            <h2 class="banner-title">Новые поступления</h2>
+            <p class="banner-text">Свежие товары уже доступны в нашем магазине</p>
+            <a href="#" class="banner-btn">Посмотреть новинки</a>
+          </div>
+        </div>
+        
+        <div class="banner-dots">
+          <div class="banner-dot active"></div>
+          <div class="banner-dot"></div>
+          <div class="banner-dot"></div>
+        </div>
+      </section>
+      
+      <!-- Категории -->
+      <section class="mb-20">
+        <h2 class="section-title">Категории</h2>
+        <div class="categories">
+          <a href="#" class="category-btn active">Все</a>
+          <a href="#" class="category-btn">Игровые аккаунты</a>
+          <a href="#" class="category-btn">Донат</a>
+          <a href="#" class="category-btn">Скины</a>
+          <a href="#" class="category-btn">Игровая валюта</a>
+          <a href="#" class="category-btn">Подписки</a>
+          <a href="#" class="category-btn">Программы</a>
+          <a href="#" class="category-btn">Другое</a>
+        </div>
+      </section>
+      
+      <!-- Промо-блоки -->
+      <section class="mb-20">
+        <div class="promo-grid">
+          <div class="promo-card">
+            <img src="images/ChatGPT Image 9 апр. 2025 г., 19_52_14.png" alt="Promo 1">
+            <div class="promo-overlay">
+              <h3 class="promo-title">Горячие предложения</h3>
+              <p>Скидки до 30%</p>
+            </div>
+          </div>
+          <div class="promo-card">
+            <img src="images/promo2.jpg" alt="Promo 2">
+            <div class="promo-overlay">
+              <h3 class="promo-title">Новые продавцы</h3>
+              <p>Специальные условия</p>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      <!-- Популярные товары -->
+      <section class="mb-20">
+           <h2 class="section-title">Популярные товары</h2>
+          <div class="products-grid" id="productsGrid">
+            <!-- Товары будут загружены через JavaScript -->
+          </div>
+        </section>
+        
+        <!-- Лучшие продавцы -->
+        <section class="mb-20">
+          <h2 class="section-title">Проверенные продавцы</h2>
+          <div class="sellers-slider">
+            <div class="sellers-container" id="sellersContainer">
+              <!-- Продавцы будут загружены через JavaScript -->
+            </div>
+          </div>
+        </section>
+        
+        <!-- Новые поступления -->
+        <section class="mb-20">
+          <h2 class="section-title">Новые поступления</h2>
+          <div class="products-grid" id="newProductsGrid">
+            <!-- Товары будут загружены через JavaScript -->
+          </div>
+        </section>
+      </div>
+      
+      <!-- Футер -->
+      <footer class="footer">
+        <div class="container">
+          <div class="footer-content">
+            <div class="footer-col">
+              <div class="footer-logo">
+                <img src="images/logo-white.png" alt="GlovimPay">
+                <span class="footer-logo-text">GlovimPay</span>
+              </div>
+              <p class="footer-about">
+                GlovimPay - безопасная площадка для покупки и продажи цифровых товаров, 
+                игровых предметов и аккаунтов с гарантией сделки.
+              </p>
+              <div class="footer-social">
+                <a href="#" class="social-link"><i class="fab fa-telegram"></i></a>
+                <a href="#" class="social-link"><i class="fab fa-vk"></i></a>
+                <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
+                <a href="#" class="social-link"><i class="fab fa-discord"></i></a>
+              </div>
+            </div>
+            
+            <div class="footer-col">
+              <h3 class="footer-title">Меню</h3>
+              <ul class="footer-links">
+                <li><a href="#">Главная</a></li>
+                <li><a href="#">Магазин</a></li>
+                <li><a href="#">Категории</a></li>
+                <li><a href="#">Избранное</a></li>
+                <li><a href="#">Мои заказы</a></li>
+              </ul>
+            </div>
+            
+            <div class="footer-col">
+              <h3 class="footer-title">Информация</h3>
+              <ul class="footer-links">
+                <li><a href="#">О нас</a></li>
+                <li><a href="#">Правила</a></li>
+                <li><a href="#">Безопасность</a></li>
+                <li><a href="#">Гарантии</a></li>
+                <li><a href="#">Отзывы</a></li>
+              </ul>
+            </div>
+            
+            <div class="footer-col">
+              <h3 class="footer-title">Контакты</h3>
+              <div class="footer-contact-item">
+                <i class="fas fa-envelope"></i>
+                <span>support@glovimpay.com</span>
+              </div>
+              <div class="footer-contact-item">
+                <i class="fas fa-phone"></i>
+                <span>+7 (123) 456-78-90</span>
+              </div>
+              <div class="footer-contact-item">
+                <i class="fas fa-map-marker-alt"></i>
+                <span>Москва, ул. Примерная, 123</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="footer-bottom">
+            <p>&copy; 2025 GlovimPay. Все права защищены.</p>
+          </div>
+        </div>
+      </footer>
+    </main>
+    
+    <!-- Мобильная навигация -->
+    <nav class="mobile-nav hidden-lg">
+      <div class="mobile-nav-container">
+        <a href="/" class="mobile-nav-item active">
+          <i class="fas fa-home"></i>
+          <span>Главная</span>
+        </a>
+        <a href="/shop" class="mobile-nav-item">
+          <i class="fas fa-store"></i>
+          <span>Магазин</span>
+        </a>
+        <a href="/cart" class="mobile-nav-item">
+          <i class="fas fa-shopping-cart"></i>
+          <span>Корзина</span>
+        </a>
+        <a href="/favorites" class="mobile-nav-item">
+          <i class="fas fa-heart"></i>
+          <span>Избранное</span>
+        </a>
+        <a href="profile.html" class="mobile-nav-item">
+          <i class="fas fa-user"></i>
+          <span>Профиль</span>
+        </a>
+      </div>
+    </nav>
+    
+    <!-- Модальное окно уведомлений -->
+    <div class="modal" id="notificationsModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 class="modal-title">Управление уведомлениями</h3>
+          <button class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="notification-tabs">
+            <button class="tab-btn active" data-tab="view">Просмотр</button>
+            <button class="tab-btn" data-tab="send">Отправить</button>
+          </div>
+          
+          <div class="tab-content active" id="viewTab">
+            <h4>Последние уведомления</h4>
+            <div class="notifications-list" id="notificationsList">
+              <!-- Уведомления будут загружены здесь -->
+            </div>
+          </div>
+          
+          <div class="tab-content" id="sendTab">
+            <h4>Отправить уведомление</h4>
+            <div class="form-group">
+              <label for="notificationTitle">Заголовок</label>
+              <input type="text" id="notificationTitle" class="form-input" placeholder="Введите заголовок">
+            </div>
+            <div class="form-group">
+              <label for="notificationMessage">Сообщение</label>
+              <textarea id="notificationMessage" class="form-input" rows="4" placeholder="Введите текст уведомления"></textarea>
+            </div>
+            <div class="form-group">
+              <label>
+                <input type="checkbox" id="sendToAll"> Отправить всем пользователям
+              </label>
+            </div>
+            <button class="btn btn-primary" id="sendNotificationBtn">Отправить</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  
+    <script>
+      // Инициализация Firebase
+      const firebaseConfig = {
+        apiKey: "AIzaSyAhn2H2BExFFf7GO2k_YDfrwPiV_cYdUBg",
+        authDomain: "glovimplaye-b1023.firebaseapp.com",
+        databaseURL: "https://glovimplaye-b1023-default-rtdb.firebaseio.com",
+        projectId: "glovimplaye-b1023",
+        storageBucket: "glovimplaye-b1023.appspot.com",
+        messagingSenderId: "553440591519",
+        appId: "1:553440591519:web:b7be45a9253689f322acaa"
+      };
+      
+      if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+      }
+      
+      // DOM элементы
+      const themeToggle = document.getElementById('themeToggle');
+      const themeIcon = document.getElementById('themeIcon');
+      const menuToggle = document.querySelector('.menu-toggle');
+      const sidebar = document.querySelector('.sidebar');
+      const notificationBtn = document.querySelector('.notification-btn');
+      const notificationsModal = document.getElementById('notificationsModal');
+      const modalClose = document.querySelector('.modal-close');
+      const productsGrid = document.getElementById('productsGrid');
+      const newProductsGrid = document.getElementById('newProductsGrid');
+      const sellersContainer = document.getElementById('sellersContainer');
+      const searchInput = document.getElementById('searchInput');
+      const searchButton = document.getElementById('searchButton');
+      
+      // Элементы модального окна уведомлений
+      const notificationTabs = document.querySelectorAll('.tab-btn');
+      const tabContents = document.querySelectorAll('.tab-content');
+      const sendNotificationBtn = document.getElementById('sendNotificationBtn');
+      const notificationsList = document.getElementById('notificationsList');
+      
+      // Переключение темы
+      function applyTheme(theme) {
+        if (theme === 'dark') {
+          document.body.classList.add('dark-mode');
+          themeIcon.className = "fas fa-moon";
+          localStorage.setItem('theme', 'dark');
+        } else {
+          document.body.classList.remove('dark-mode');
+          themeIcon.className = "fas fa-sun";
+          localStorage.setItem('theme', 'light');
+        }
+      }
+      
+      themeToggle.addEventListener('click', () => {
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        applyTheme(currentTheme === 'light' ? 'dark' : 'light');
+      });
+      
+      // Применяем сохраненную тему при загрузке
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      applyTheme(savedTheme);
+      
+      // Мобильное меню
+      menuToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('active');
+      });
+      
+      // Переключение между вкладками в модальном окне
+      notificationTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          notificationTabs.forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          
+          const tabId = tab.getAttribute('data-tab');
+          tabContents.forEach(content => {
+            content.classList.remove('active');
+            if (content.id === `${tabId}Tab`) {
+              content.classList.add('active');
+            }
+          });
+        });
+      });
+      
+      // Модальное окно уведомлений
+      notificationBtn.addEventListener('click', () => {
+        notificationsModal.style.display = 'flex';
+        loadNotifications();
+      });
+      
+      modalClose.addEventListener('click', () => {
+        notificationsModal.style.display = 'none';
+      });
+      
+      window.addEventListener('click', (e) => {
+        if (e.target === notificationsModal) {
+          notificationsModal.style.display = 'none';
+        }
+      });
+      
+      // Загрузка уведомлений
+      function loadNotifications() {
+        const currentUserId = firebase.auth().currentUser?.uid;
+        if (!currentUserId) return;
+
+        const notificationsRef = firebase.database().ref('notifications')
+          .orderByChild('timestamp')
+          .limitToLast(10);
+
+        notificationsRef.on('value', (snapshot) => {
+          notificationsList.innerHTML = '';
+          
+          const notifications = [];
+          snapshot.forEach(childSnapshot => {
+            notifications.unshift(childSnapshot.val()); // Добавляем в начало массива для сортировки от новых к старым
+          });
+          
+          notifications.forEach(notification => {
+            const notificationItem = document.createElement('div');
+            notificationItem.className = 'notification-item';
+            
+            const date = new Date(notification.timestamp);
+            const formattedDate = date.toLocaleString();
+            
+            notificationItem.innerHTML = `
+              <p><strong>${notification.title}</strong></p>
+              <p>${notification.message}</p>
+              <small>${formattedDate}</small>
+            `;
+            
+            notificationsList.appendChild(notificationItem);
+          });
+          
+          if (notifications.length === 0) {
+            notificationsList.innerHTML = '<p>Нет уведомлений</p>';
+          }
+        });
+      }
+      
+      // Отправка уведомления
+      sendNotificationBtn.addEventListener('click', () => {
+        const title = document.getElementById('notificationTitle').value.trim();
+        const message = document.getElementById('notificationMessage').value.trim();
+        const sendToAll = document.getElementById('sendToAll').checked;
+        
+        if (!title || !message) {
+          alert('Пожалуйста, заполните все поля');
+          return;
+        }
+        
+        const notification = {
+          title,
+          message,
+          timestamp: Date.now(),
+          sender: firebase.auth().currentUser?.uid || 'system'
+        };
+        
+        if (sendToAll) {
+          // Отправка всем пользователям
+          const usersRef = firebase.database().ref('users');
+          usersRef.once('value').then(snapshot => {
+            const updates = {};
+            
+            snapshot.forEach(userSnapshot => {
+              updates[`userNotifications/${userSnapshot.key}/${Date.now()}`] = notification;
+            });
+            
+            // Добавляем в общий список уведомлений
+            updates[`notifications/${Date.now()}`] = notification;
+            
+            firebase.database().ref().update(updates)
+              .then(() => {
+                alert('Уведомление отправлено всем пользователям');
+                document.getElementById('notificationTitle').value = '';
+                document.getElementById('notificationMessage').value = '';
+              })
+              .catch(error => {
+                console.error('Ошибка отправки уведомлений:', error);
+                alert('Произошла ошибка при отправке уведомлений');
+              });
+          });
+        } else {
+          // Отправка только в общий список (для админа)
+          firebase.database().ref(`notifications/${Date.now()}`).set(notification)
+            .then(() => {
+              alert('Уведомление добавлено');
+              document.getElementById('notificationTitle').value = '';
+              document.getElementById('notificationMessage').value = '';
+            })
+            .catch(error => {
+              console.error('Ошибка добавления уведомления:', error);
+              alert('Произошла ошибка при добавлении уведомления');
+            });
+        }
+      });
+      
+      // Слайдер баннера
+      let currentSlide = 0;
+      const slides = document.querySelectorAll('.banner-slide');
+      const dots = document.querySelectorAll('.banner-dot');
+      
+      function showSlide(index) {
+        slides.forEach(slide => slide.classList.remove('active'));
+        dots.forEach(dot => dot.classList.remove('active'));
+        
+        currentSlide = (index + slides.length) % slides.length;
+        slides[currentSlide].classList.add('active');
+        dots[currentSlide].classList.add('active');
+      }
+      
+      function nextSlide() {
+        showSlide(currentSlide + 1);
+      }
+      
+      dots.forEach((dot, index) => {
+        dot.addEventListener('click', () => {
+          showSlide(index);
+        });
+      });
+      
+      setInterval(nextSlide, 5000);
+      
+      // Поиск товаров
+      function performSearch(query) {
+        const searchTerm = query.toLowerCase().trim();
+        
+        if (searchTerm === '') {
+          loadProducts(); // Перезагружаем все товары если поиск пустой
+          return;
+        }
+        
+        const productsRef = firebase.database().ref('products');
+        
+        productsRef.once('value').then((snapshot) => {
+          productsGrid.innerHTML = '';
+          newProductsGrid.innerHTML = '';
+          
+          snapshot.forEach((childSnapshot) => {
+            const product = childSnapshot.val();
+            const productName = product.name.toLowerCase();
+            const productDesc = product.description.toLowerCase();
+            
+            if (productName.includes(searchTerm) || productDesc.includes(searchTerm)) {
+              renderProductCard(product, childSnapshot.key, productsGrid);
+            }
+          });
+        });
+      }
+      
+      searchButton.addEventListener('click', () => {
+        performSearch(searchInput.value);
+      });
+      
+      searchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          performSearch(searchInput.value);
+        }
+      });
+      
+      // Функция для создания карточки товара
+      function renderProductCard(product, productId, container) {
+        const productCard = document.createElement('div');
+        productCard.className = 'product-card fade-in';
+        productCard.innerHTML = `
+          ${product.discount ? `<span class="product-badge">-${product.discount}%</span>` : ''}
+          <div class="product-image">
+            ${product.images && product.images[0] ? 
+              `<img src="${product.images[0]}" alt="${product.name}">` : 
+              '<span>Нет изображения</span>'}
+          </div>
+          <div class="product-info">
+            <h3 class="product-title">${product.name}</h3>
+            <span class="product-category">${product.category}</span>
+            <div class="product-price">
+              <div>
+                ${product.oldPrice ? `<span class="old-price">${product.oldPrice} ₽</span>` : ''}
+                <span class="price">${product.price} ₽</span>
+              </div>
+              <button class="add-to-cart"><i class="fas fa-shopping-cart"></i></button>
+            </div>
+            <div class="product-meta">
+              <div class="product-rating">
+                <i class="fas fa-star"></i>
+                <span>${product.rating || '4.8'}</span>
+              </div>
+              <div class="product-likes">
+                <i class="fas fa-heart"></i>
+                <span>${product.likes || '24'}</span>
+              </div>
+            </div>
+          </div>
+        `;
+        
+        productCard.addEventListener('click', () => {
+          window.location.href = `/product-details.html?id=${productId}`;
+        });
+        
+        container.appendChild(productCard);
+      }
+      
+      // Загрузка товаров из Firebase
+      function loadProducts() {
+        const productsRef = firebase.database().ref('products').orderByChild('popularity').limitToLast(8);
+        
+        productsRef.on('value', (snapshot) => {
+          productsGrid.innerHTML = '';
+          
+          snapshot.forEach((childSnapshot) => {
+            const product = childSnapshot.val();
+            renderProductCard(product, childSnapshot.key, productsGrid);
+          });
+        });
+        
+        // Новые товары
+        const newProductsRef = firebase.database().ref('products').orderByChild('dateAdded').limitToLast(4);
+        
+        newProductsRef.on('value', (snapshot) => {
+          newProductsGrid.innerHTML = '';
+          
+          snapshot.forEach((childSnapshot) => {
+            const product = childSnapshot.val();
+            renderProductCard(product, childSnapshot.key, newProductsGrid);
+          });
+        });
+      }
+      
+      // Загрузка продавцов из Firebase
+      function loadSellers() {
+        const sellersRef = firebase.database().ref('sellers').orderByChild('rating').limitToLast(10);
+        
+        sellersRef.on('value', (snapshot) => {
+          sellersContainer.innerHTML = '';
+          
+          snapshot.forEach((childSnapshot) => {
+            const seller = childSnapshot.val();
+            const sellerId = childSnapshot.key;
+            
+            const sellerCard = document.createElement('a');
+            sellerCard.href = `/seller.html?id=${sellerId}`;
+            sellerCard.className = 'seller-card fade-in';
+            sellerCard.innerHTML = `
+              <img src="${seller.avatar || 'images/default-avatar.png'}" alt="${seller.name}" class="seller-avatar">
+              <div class="seller-name">${seller.name}</div>
+              <div class="seller-rating">
+                <i class="fas fa-star"></i> ${seller.rating}
+              </div>
+            `;
+            
+            sellersContainer.appendChild(sellerCard);
+          });
+        });
+      }
+      
+      // Загрузка данных пользователя
+      function loadUserData() {
+        firebase.auth().onAuthStateChanged((user) => {
+          if (user) {
+            const userRef = firebase.database().ref('users/' + user.uid);
+            
+            userRef.on('value', (snapshot) => {
+              const userData = snapshot.val() || {};
+              
+              // Обновляем данные в сайдбаре
+              document.querySelector('.user-avatar').src = userData.avatar || 'images/avatar.jpg';
+              document.querySelector('.user-name').textContent = userData.name || 'Пользователь';
+              document.querySelector('.user-email').textContent = user.email;
+              
+              // Обновляем аватар в хедере
+              const profileImg = document.querySelector('.profile-btn img');
+              if (profileImg) {
+                profileImg.src = userData.avatar || 'images/avatar.jpg';
+              }
+              
+              // Проверяем, является ли пользователь администратором
+              if (userData.role === 'admin') {
+                // Показываем кнопку отправки уведомлений всем
+                document.getElementById('sendToAll').parentElement.style.display = 'block';
+              } else {
+                document.getElementById('sendToAll').parentElement.style.display = 'none';
+              }
+            });
+          } else {
+            // Гостевой режим
+            document.querySelector('.user-name').textContent = 'Гость';
+            document.querySelector('.user-email').textContent = 'Войдите в аккаунт';
+          }
+        });
+      }
+      
+      // Инициализация при загрузке страницы
+      document.addEventListener('DOMContentLoaded', () => {
+        loadProducts();
+        loadSellers();
+        loadUserData();
+        
+        // Пример данных для демонстрации (в реальном проекте данные берутся из Firebase)
+        if (productsGrid.children.length === 0) {
+          productsGrid.innerHTML = `
+            <div class="text-center" style="grid-column: 1 / -1;">
+              <p>Загрузка товаров...</p>
+            </div>
+          `;
+        }
+      });
+      
+      // Адаптивность
+      function handleResize() {
+        if (window.innerWidth < 992) {
+          document.querySelector('.mobile-nav').classList.remove('hidden');
+          menuToggle.classList.remove('hidden');
+        } else {
+          document.querySelector('.mobile-nav').classList.add('hidden');
+          menuToggle.classList.add('hidden');
+          sidebar.classList.remove('active');
+        }
+      }
+      
+      window.addEventListener('resize', handleResize);
+      handleResize();
+    </script>
+  </body>
+</html>
+    

@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Избранное | GlovimPlaye</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Firebase v8 -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  
+  <!-- Font Awesome для иконок -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    /* Основные переменные */
+    :root {
+      --primary: #6C5CE7;
+      --primary-dark: #5649C0;
+      --secondary: #00B894;
+      --accent: #FD79A8;
+      --dark: #2D3436;
+      --light: #F5F6FA;
+      --gray: #636E72;
+      --light-gray: #DFE6E9;
+      --success: #00B894;
+      --warning: #FDCB6E;
+      --danger: #D63031;
+      --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      --border-radius: 12px;
+    }
+    
+    /* Общие стили */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+    
+    body {
+      background-color: var(--light);
+      color: var(--dark);
+      line-height: 1.6;
+      transition: var(--transition);
+    }
+    
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+    
+    button, input, textarea {
+      font-family: inherit;
+      outline: none;
+    }
+    
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+    
+
+
+
+
+
+
+
+  
+    .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+      }
+
+    
+    .theme-toggle, .notification-btn, .profile-btn {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: var(--light);
+      color: var(--gray);
+      border: none;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    
+    .theme-toggle:hover, .notification-btn:hover, .profile-btn:hover {
+      background: rgba(108, 92, 231, 0.1);
+      color: var(--primary);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+    /* Шапка */
+    header {
+      background: white;
+      box-shadow: var(--card-shadow);
+      padding: 15px 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    
+    .header-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    
+    .logo img {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+    }
+    
+    /* Основной контент */
+    .main-content {
+      padding: 30px 0;
+      min-height: calc(100vh - 150px);
+    }
+    
+    .section-title {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      color: var(--dark);
+      position: relative;
+      padding-left: 15px;
+    }
+    
+    .section-title::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 5px;
+      bottom: 5px;
+      width: 4px;
+      background: var(--primary);
+      border-radius: 2px;
+    }
+    
+    /* Список избранного */
+    .favorites-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+    
+    .favorite-item {
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--card-shadow);
+      overflow: hidden;
+      transition: var(--transition);
+      position: relative;
+    }
+    
+    .favorite-item:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+    
+    .favorite-image {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+    }
+    
+    .favorite-info {
+      padding: 15px;
+    }
+    
+    .favorite-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--dark);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    
+    .favorite-price {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--primary);
+      margin-top: 10px;
+    }
+    
+    .favorite-actions {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 15px;
+      padding-top: 10px;
+      border-top: 1px solid var(--light-gray);
+    }
+    
+    .favorite-remove {
+      background: none;
+      border: none;
+      color: var(--danger);
+      cursor: pointer;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .favorite-buy {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: var(--border-radius);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    
+    .favorite-buy:hover {
+      background: var(--primary-dark);
+    }
+    
+    .empty-favorites {
+      text-align: center;
+      padding: 50px 0;
+      grid-column: 1 / -1;
+    }
+    
+    .empty-favorites i {
+      font-size: 50px;
+      color: var(--gray);
+      margin-bottom: 20px;
+    }
+    
+    .empty-favorites p {
+      font-size: 18px;
+      color: var(--gray);
+      margin-bottom: 20px;
+    }
+    
+    .empty-favorites a {
+      color: var(--primary);
+      font-weight: 600;
+    }
+    
+    /* Мобильная навигация */
+    .mobile-nav {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+      z-index: 100;
+    }
+    
+    .mobile-nav-container {
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+    }
+    
+    .mobile-nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: var(--gray);
+      font-size: 12px;
+      gap: 5px;
+      padding: 5px 10px;
+      border-radius: 8px;
+      transition: var(--transition);
+    }
+    
+    .mobile-nav-item i {
+      font-size: 20px;
+    }
+    
+    .mobile-nav-item.active, .mobile-nav-item:hover {
+      color: var(--primary);
+      background: rgba(108, 92, 231, 0.1);
+    }
+    
+    /* Футер */
+    .footer {
+      background: var(--dark);
+      color: white;
+      padding: 30px 0 20px;
+    }
+    
+    .footer-content {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 30px;
+      margin-bottom: 30px;
+    }
+    
+    .footer-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    
+    .footer-logo img {
+      width: 40px;
+      height: 40px;
+    }
+    
+    .footer-logo-text {
+      font-size: 20px;
+      font-weight: 700;
+    }
+    
+    .footer-about {
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--light-gray);
+      margin-bottom: 20px;
+    }
+    
+    .footer-social {
+      display: flex;
+      gap: 15px;
+    }
+    
+    .social-link {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      transition: var(--transition);
+    }
+    
+    .social-link:hover {
+      background: var(--primary);
+      transform: translateY(-3px);
+    }
+    
+    .footer-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      position: relative;
+      padding-bottom: 10px;
+    }
+    
+    .footer-title::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 40px;
+      height: 2px;
+      background: var(--primary);
+    }
+    
+    .footer-links {
+      list-style: none;
+    }
+    
+    .footer-links li {
+      margin-bottom: 12px;
+    }
+    
+    .footer-links a {
+      color: var(--light-gray);
+      font-size: 14px;
+      transition: var(--transition);
+      display: block;
+    }
+    
+    .footer-links a:hover {
+      color: var(--primary);
+      padding-left: 5px;
+    }
+    
+    .footer-bottom {
+      text-align: center;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      font-size: 14px;
+      color: var(--light-gray);
+    }
+    
+    /* Адаптивность */
+    @media (max-width: 768px) {
+      .favorites-grid {
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      }
+    }
+    
+    @media (max-width: 576px) {
+      .mobile-nav {
+        display: block;
+      }
+      
+      .favorites-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    /* Темная тема */
+    body.dark-mode {
+      background: #121212;
+      color: #e0e0e0;
+    }
+    
+    body.dark-mode header,
+    body.dark-mode .favorite-item,
+    body.dark-mode .mobile-nav {
+      background: #1E1E1E;
+      color: #e0e0e0;
+    }
+    
+    body.dark-mode .section-title,
+    body.dark-mode .favorite-title {
+      color: #e0e0e0;
+    }
+    
+    body.dark-mode .favorite-actions {
+      border-color: #3D3D3D;
+    }
+    
+    body.dark-mode .mobile-nav {
+      background: #1E1E1E;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+    }
+    
+    body.dark-mode .mobile-nav-item {
+      color: #b0b0b0;
+    }
+    
+    body.dark-mode .mobile-nav-item.active,
+    body.dark-mode .mobile-nav-item:hover {
+      color: var(--primary);
+    }
+    
+    /* Анимации */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    .fade-in {
+      animation: fadeIn 0.5s ease;
+    }
+  </style>
+</head>
+<body>
+  <!-- Шапка -->
+  <header>
+    <div class="container">
+      <div class="header-content">
+        <a href="index.html" class="logo">
+          <img src="images/logo (2).png" alt="GlovimPlaye">
+          <span>GlovimPlaye</span>
+        </a>
+        
+        <div class="header-actions">
+          <button class="theme-toggle" id="themeToggle">
+            <i class="fas fa-sun" id="themeIcon"></i>
+          </button>
+          
+          
+        </div>
+      </div>
+    </div>
+  </header>
+  
+  <!-- Основной контент -->
+  <main class="main-content">
+    <div class="container">
+      <h1 class="section-title">Избранное</h1>
+      
+      <div class="favorites-grid" id="favoritesGrid">
+        <!-- Товары будут загружены через JavaScript -->
+        <div class="empty-favorites">
+          <i class="fas fa-heart"></i>
+          <p>В избранном пока ничего нет</p>
+          <a href="catalog.html">Перейти в каталог</a>
+        </div>
+      </div>
+    </div>
+  </main>
+  
+  <!-- Мобильная навигация -->
+  <nav class="mobile-nav">
+    <div class="mobile-nav-container">
+      <a href="index.html" class="mobile-nav-item">
+        <i class="fas fa-home"></i>
+        <span>Главная</span>
+      </a>
+      <a href="catalog.html" class="mobile-nav-item">
+        <i class="fas fa-th-large"></i>
+        <span>Каталог</span>
+      </a>
+      <a href="favorites.html" class="mobile-nav-item active">
+        <i class="fas fa-heart"></i>
+        <span>Избранное</span>
+      </a>
+      <a href="profile.html" class="mobile-nav-item">
+        <i class="fas fa-user"></i>
+        <span>Профиль</span>
+      </a>
+    </div>
+  </nav>
+  
+      
+      
+  
+  <!-- Скрипты -->
+  <script>
+    // Инициализация Firebase
+    var firebaseConfig = {
+      apiKey: "AIzaSyAhn2H2BExFFf7GO2k_YDfrwPiV_cYdUBg",
+      authDomain: "glovimplaye-b1023.firebaseapp.com",
+      databaseURL: "https://glovimplaye-b1023-default-rtdb.firebaseio.com",
+      projectId: "glovimplaye-b1023",
+      storageBucket: "glovimplaye-b1023.appspot.com",
+      messagingSenderId: "553440591519",
+      appId: "1:553440591519:web:b7be45a9253689f322acaa"
+    };
+    firebase.initializeApp(firebaseConfig);
+    
+    // Проверка авторизации пользователя
+    firebase.auth().onAuthStateChanged(function(user) {
+      if (!user) {
+        console.log("Пользователь не авторизован");
+        window.location.href = "login.html";
+      } else {
+        console.log   ("Пользователь авторизован:", user.uid);
+        // Загрузка избранных товаров пользователя
+        loadFavorites(user.uid);
+        setupThemeToggle();
+      }
+    });
+
+    // Загрузка избранных товаров пользователя
+    function loadFavorites(userId) {
+      const favoritesRef = firebase.database().ref('users/' + userId + '/favorites');
+      
+      favoritesRef.on('value', (snapshot) => {
+        const favorites = snapshot.val();
+        const favoritesGrid = document.getElementById('favoritesGrid');
+        
+        // Очищаем контейнер
+        favoritesGrid.innerHTML = '';
+        
+        if (!favorites || Object.keys(favorites).length === 0) {
+          // Показываем сообщение, если избранное пустое
+          favoritesGrid.innerHTML = `
+            <div class="empty-favorites">
+              <i class="fas fa-heart"></i>
+              <p>В избранном пока ничего нет</p>
+              <a href="catalog.html">Перейти в каталог</a>
+            </div>
+          `;
+          return;
+        }
+        
+        // Загружаем информацию о каждом избранном товаре
+        Object.keys(favorites).forEach(productId => {
+          firebase.database().ref('products/' + productId).once('value')
+            .then(productSnapshot => {
+              if (productSnapshot.exists()) {
+                const product = productSnapshot.val();
+                renderFavoriteItem(productId, product);
+              } else {
+                // Удаляем несуществующий товар из избранного
+                favoritesRef.child(productId).remove();
+              }
+            })
+            .catch(error => {
+              console.error("Ошибка загрузки товара:", error);
+            });
+        });
+      });
+    }
+
+    // Отображение карточки избранного товара
+    function renderFavoriteItem(productId, product) {
+      const favoritesGrid = document.getElementById('favoritesGrid');
+      
+      const favoriteItem = document.createElement('div');
+      favoriteItem.className = 'favorite-item fade-in';
+      favoriteItem.innerHTML = `
+        <img src="${product.image || 'placeholder.jpg'}" alt="${product.name}" class="favorite-image">
+        <div class="favorite-info">
+          <h3 class="favorite-title">${product.name}</h3>
+          <div class="favorite-price">${product.price} ₽</div>
+          <div class="favorite-actions">
+            <button class="favorite-remove" data-id="${productId}">
+              <i class="fas fa-trash-alt"></i> Удалить
+            </button>
+            <button class="favorite-buy" data-id="${productId}">
+              Купить
+            </button>
+          </div>
+        </div>
+      `;
+      
+      favoritesGrid.appendChild(favoriteItem);
+      
+      // Обработчики событий для кнопок
+      favoriteItem.querySelector('.favorite-remove').addEventListener('click', (e) => {
+        e.stopPropagation();
+        removeFromFavorites(productId);
+      });
+      
+      favoriteItem.querySelector('.favorite-buy').addEventListener('click', (e) => {
+        e.stopPropagation();
+        window.location.href = `checkout.html?id=${productId}`;
+      });
+      
+      // Клик по карточке ведет на страницу товара
+      favoriteItem.addEventListener('click', () => {
+        window.location.href = `product.html?id=${productId}`;
+      });
+    }
+
+    // Удаление товара из избранного
+    function removeFromFavorites(productId) {
+      const userId = firebase.auth().currentUser.uid;
+      if (!userId) return;
+      
+      firebase.database().ref('users/' + userId + '/favorites/' + productId).remove()
+        .then(() => {
+          console.log("Товар удален из избранного");
+        })
+        .catch(error => {
+          console.error("Ошибка удаления из избранного:", error);
+          alert("Не удалось удалить товар из избранного");
+        });
+    }
+
+    // Настройка переключателя темы
+    function setupThemeToggle() {
+      const themeToggle = document.getElementById('themeToggle');
+      const themeIcon = document.getElementById('themeIcon');
+      
+      function applyTheme(theme) {
+        if (theme === 'dark') {
+          document.body.classList.add('dark-mode');
+          themeIcon.className = "fas fa-moon";
+          localStorage.setItem('theme', 'dark');
+        } else {
+          document.body.classList.remove('dark-mode');
+          themeIcon.className = "fas fa-sun";
+          localStorage.setItem('theme', 'light');
+        }
+      }
+      
+      themeToggle.addEventListener('click', () => {
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        applyTheme(currentTheme === 'light' ? 'dark' : 'light');
+      });
+      
+      // Применяем сохраненную тему при загрузке
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      applyTheme(savedTheme);
+    }
+    
+    // Адаптивность для мобильной навигации
+    function handleResize() {
+      if (window.innerWidth < 576) {
+        document.querySelector('.mobile-nav').style.display = 'block';
+      } else {
+        document.querySelector('.mobile-nav').style.display = 'none';
+      }
+    }
+    
+    window.addEventListener('resize', handleResize);
+    handleResize();
+  </script>
+</body>
+</html>

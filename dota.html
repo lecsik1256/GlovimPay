@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Dota — Подкатегории | GlovimPlaye</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="format-detection" content="telephone=no">
+  
+  <!-- Firebase v8 -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  
+  <!-- Font Awesome (иконки) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+  
+  <style>
+    :root {
+      --bg-color: #0e0e0e;
+      --card-bg: #1e1e1e;
+      --accent-color: #4fc3f7;
+      --accent-hover: #80deea;
+      --text-color: #ccc;
+      --header-bg: #161616;
+    }
+    
+    /* Сброс стилей */
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background: var(--bg-color);
+      color: var(--text-color);
+      min-height: 100vh;
+      padding-bottom: 70px; /* место для нижней навигации */
+    }
+    
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+    
+    /* Шапка */
+    header {
+      width: 100%;
+      background: var(--header-bg);
+      padding: 15px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .logo-button {
+      background: none;
+      border: none;
+      color: var(--accent-color);
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.3s, color 0.3s;
+    }
+    .logo-button:hover {
+      color: var(--accent-hover);
+      transform: scale(1.05);
+    }
+    .search-container {
+      flex: 1;
+      max-width: 400px;
+      margin: 0 20px;
+      display: flex;
+      border: 2px solid #333;
+      border-radius: 30px;
+      overflow: hidden;
+      background: var(--card-bg);
+    }
+    .search-input {
+      flex: 1;
+      padding: 10px 15px;
+      font-size: 16px;
+      border: none;
+      background: transparent;
+      color: var(--text-color);
+      outline: none;
+    }
+    .search-input::placeholder {
+      color: #888;
+    }
+    .profile {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+    }
+    .profile img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 2px solid var(--accent-color);
+      transition: transform 0.3s;
+    }
+    .profile img:hover {
+      transform: scale(1.1);
+    }
+    
+    /* Контейнер контента */
+    .container {
+      max-width: 1200px;
+      margin: 20px auto;
+      background: var(--card-bg);
+      padding: 20px;
+      border-radius: 8px;
+    }
+    
+    /* Dota Header */
+    .dota-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .dota-header img {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-right: 15px;
+    }
+    .dota-header h1 {
+      font-size: 28px;
+      color: var(--accent-color);
+    }
+    
+    /* Подкатегории */
+    .subcategory-title {
+      font-size: 20px;
+      margin-bottom: 15px;
+    }
+    .subcategories {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    .subcategory-card {
+      background: #262626;
+      padding: 15px;
+      border-radius: 8px;
+      text-align: center;
+      color: var(--text-color);
+      transition: background 0.3s;
+    }
+    .subcategory-card:hover {
+      background: #333;
+    }
+    
+    /* Таблица товаров */
+    .product-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #2a2a2a;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    .product-table th,
+    .product-table td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #444;
+    }
+    .product-table th {
+      background: #333;
+      font-weight: bold;
+    }
+    .product-table tr:hover {
+      background: #3a3a3a;
+    }
+    .product-name {
+      color: var(--accent-color);
+      font-weight: bold;
+    }
+    .product-name:hover {
+      text-decoration: underline;
+    }
+    .seller-container {
+      display: flex;
+      align-items: center;
+    }
+    .seller-container img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      margin-right: 10px;
+      object-fit: cover;
+    }
+    .seller-name {
+      font-size: 16px;
+      color: var(--text-color);
+    }
+    .price {
+      font-weight: bold;
+      color: var(--accent-color);
+    }
+    
+    /* Нижняя навигация для мобильных */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: var(--header-bg);
+      display: none;
+      justify-content: space-around;
+      align-items: center;
+      padding: 10px 0;
+      box-shadow: 0 -2px 8px rgba(0,0,0,0.5);
+      z-index: 100;
+    }
+    .bottom-nav a {
+      text-decoration: none;
+      color: var(--text-color);
+      text-align: center;
+      flex: 1;
+      font-size: 12px;
+    }
+    .bottom-nav a i {
+      display: block;
+      font-size: 24px;
+      margin-bottom: 4px;
+    }
+    
+    /* Footer */
+    footer {
+      background: var(--header-bg);
+      padding: 20px;
+      text-align: center;
+      color: var(--text-color);
+      margin-top: 20px;
+      border-radius: 8px;
+    }
+    .footer-btn {
+      background: var(--accent-color);
+      color: #121212;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .footer-btn:hover {
+      background: var(--accent-hover);
+    }
+    .social-links {
+      margin-top: 10px;
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+    }
+    .social-links a {
+      color: var(--text-color);
+      font-size: 24px;
+      transition: color 0.3s;
+    }
+    .social-links a:hover {
+      color: #ff4500;
+    }
+    
+    /* Responsive стили */
+    @media (max-width: 768px) {
+      header {
+        padding: 10px 15px;
+      }
+      .logo-button {
+        font-size: 24px;
+      }
+      .search-container {
+        margin: 0 10px;
+      }
+      .search-input {
+        padding: 8px 10px;
+        font-size: 14px;
+      }
+      .profile img {
+        width: 35px;
+        height: 35px;
+      }
+      .container {
+        margin: 10px;
+        padding: 15px;
+      }
+      .subcategories {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .product-table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+      }
+      .bottom-nav {
+        display: flex;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Шапка -->
+  <header>
+    <button class="logo-button" onclick="window.location.href='index.html'">GlovimPlaye</button>
+    <div class="search-container">
+      <input type="text" class="search-input" placeholder="Поиск...">
+    </div>
+    <div class="profile" id="profileSection" onclick="showProfileModal()">
+      <img id="avatar" src="default-avatar.png" alt="Avatar">
+    </div>
+  </header>
+  
+  <!-- Основной контент -->
+  <div class="container">
+    <div class="dota-header">
+      <!-- Замените путь к картинке на актуальный для Dota -->
+      <img src="images/dota.jpg" alt="Dota">
+      <h1>Dota</h1>
+    </div>
+    <p class="subcategory-title">
+      <span class="desktop">Выберите подкатегорию:</span>
+      <span class="mobile">Подкатегории:</span>
+    </p>
+    <div class="subcategories">
+      <!-- Пример подкатегорий для Dota. Измените ссылки и названия по необходимости -->
+      <a href="dota-accounts.html" class="subcategory-card">Аккаунты</a>
+      <a href="dota-skins.html" class="subcategory-card">Скины</a>
+      <a href="dota-donate.html" class="subcategory-card">Донат</a>
+      <a href="dota-services.html" class="subcategory-card">Услуги</a>
+      <a href="dota-items.html" class="subcategory-card">Товары</a>
+      <a href="dota-other.html" class="subcategory-card">Другое</a>
+    </div>
+    <!-- Таблица товаров -->
+    <table class="product-table">
+      <thead>
+        <tr>
+          <th>Название</th>
+          <th>Продавец</th>
+          <th>Наличие</th>
+          <th>Цена</th>
+        </tr>
+      </thead>
+      <tbody id="productList">
+        <!-- Данные будут подгружаться из Firebase -->
+      </tbody>
+    </table>
+  </div>
+  
+  <!-- Нижняя навигация для мобильных -->
+  <div class="bottom-nav">
+    <a href="index.html"><i class="fas fa-home"></i><span>Главная</span></a>
+    <a href="add.html"><i class="fas fa-plus"></i><span>Продать</span></a>
+    <a href="chat.html"><i class="fas fa-comments"></i><span>Чат</span></a>
+    <a href="profile.html"><i class="fas fa-user"></i><span>Профиль</span></a>
+  </div>
+  
+  <!-- Footer -->
+  <footer>
+    <button class="footer-btn" onclick="window.location.href='index.html'">На главную</button>
+    <div class="social-links">
+      <a href="https://www.tiktok.com/" target="_blank" title="TikTok"><i class="fab fa-tiktok"></i></a>
+      <a href="https://www.youtube.com/" target="_blank" title="YouTube"><i class="fab fa-youtube"></i></a>
+      <a href="https://t.me/" target="_blank" title="Telegram"><i class="fab fa-telegram-plane"></i></a>
+    </div>
+    <p>© 2025 GlovimPlaye. Все права защищены.</p>
+  </footer>
+  
+  <!-- Скрипты Firebase и логика страницы -->
+  <script>
+    // Firebase конфигурация и инициализация
+    var firebaseConfig = {
+      apiKey: "AIzaSyAhn2H2BExFFf7GO2k_YDfrwPiV_cYdUBg",
+      authDomain: "glovimplaye-b1023.firebaseapp.com",
+      databaseURL: "https://glovimplaye-b1023-default-rtdb.firebaseio.com",
+      projectId: "glovimplaye-b1023",
+      storageBucket: "glovimplaye-b1023.firebasestorage.app",
+      messagingSenderId: "553440591519",
+      appId: "1:553440591519:web:b7be45a9253689f322acaa"
+    };
+    firebase.initializeApp(firebaseConfig);
+    
+    // Отображение профиля в шапке
+    function updateProfile(user) {
+      document.getElementById("profileSection").style.display = "flex";
+      document.getElementById("avatar").src = user.photoURL || 'default-avatar.png';
+    }
+    firebase.auth().onAuthStateChanged(function(user) {
+      if (user) {
+        updateProfile(user);
+      } else {
+        document.getElementById("profileSection").style.display = "none";
+      }
+    });
+    function showProfileModal() {
+      alert("Показ профиля");
+    }
+    
+    // Загрузка товаров категории Dota из Firebase
+    window.onload = function() {
+      const productList = document.getElementById('productList');
+      firebase.database().ref('products')
+        .orderByChild('category')
+        .equalTo('dota')
+        .on('value', function(snapshot) {
+          productList.innerHTML = "";
+          if (!snapshot.exists()) {
+            productList.innerHTML = '<tr><td colspan="4">Товаров нет</td></tr>';
+            return;
+          }
+          snapshot.forEach(function(childSnapshot) {
+            const product = childSnapshot.val();
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td><a href="product-details.html?id=${childSnapshot.key}" class="product-name">${product.name}</a></td>
+              <td>
+                <div class="seller-container">
+                  <img src="${product.sellerAvatar || 'default-avatar.png'}" alt="Аватар">
+                  <span class="seller-name">${product.sellerName}</span>
+                </div>
+              </td>
+              <td>${product.stock || 0} шт.</td>
+              <td class="price">${product.price} ₽</td>
+            `;
+            productList.appendChild(row);
+          });
+        });
+    };
+  </script>
+</body>
+</html>

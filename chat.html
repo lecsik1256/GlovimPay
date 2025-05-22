@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Чат | GlovimPlaye</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
+  <!-- Firebase v8 -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+  <!-- Font Awesome для иконок -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* Основные переменные */
+    :root {
+      --primary: #6C5CE7;
+      --primary-dark: #5649C0;
+      --secondary: #00B894;
+      --accent: #FD79A8;
+      --dark: #2D3436;
+      --light: #F5F6FA;
+      --gray: #636E72;
+      --light-gray: #DFE6E9;
+      --success: #00B894;
+      --warning: #FDCB6E;
+      --danger: #D63031;
+      --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      --border-radius: 12px;
+      --sidebar-width: 280px;
+    }
+    
+    /* Общие стили */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+    
+    body {
+      background-color: var(--light);
+      color: var(--dark);
+      line-height: 1.6;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+    
+    button, input, textarea {
+      font-family: inherit;
+      outline: none;
+    }
+
+    /* Хедер */
+    header {
+      background: white;
+      padding: 15px 30px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: var(--card-shadow);
+      z-index: 10;
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--primary);
+      cursor: pointer;
+    }
+    
+    .logo-img {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      object-fit: cover;
+    }
+
+
+
+
+
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+  
+  .theme-toggle, .notification-btn, .profile-btn {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--light);
+    color: var(--gray);
+    border: none;
+    cursor: pointer;
+    transition: var(--transition);
+  }
+  
+  .theme-toggle:hover, .notification-btn:hover, .profile-btn:hover {
+    background: rgba(108, 92, 231, 0.1);
+    color: var(--primary);
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+    /* Основной контейнер чата */
+    .chat-container {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+      background: var(--light);
+    }
+
+    /* Боковая панель */
+    .sidebar {
+      width: var(--sidebar-width);
+      background: white;
+      border-right: 1px solid var(--light-gray);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      transition: var(--transition);
+    }
+    
+    .search-bar {
+      padding: 15px;
+      border-bottom: 1px solid var(--light-gray);
+    }
+    
+    .search-bar input {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1px solid var(--light-gray);
+      border-radius: var(--border-radius);
+      background: white;
+      color: var(--dark);
+      font-size: 14px;
+      transition: var(--transition);
+    }
+    
+    .search-bar input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.2);
+    }
+    
+    .search-results {
+      background: white;
+      border-top: 1px solid var(--light-gray);
+      max-height: 200px;
+      overflow-y: auto;
+      display: none;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    .search-item {
+      padding: 12px 15px;
+      border-bottom: 1px solid var(--light-gray);
+      cursor: pointer;
+      transition: var(--transition);
+      font-size: 14px;
+    }
+    
+    .search-item:hover {
+      background: rgba(108, 92, 231, 0.1);
+      color: var(--primary);
+    }
+    
+    .recent-chats {
+      flex: 1;
+      overflow-y: auto;
+    }
+    
+    .chat-user-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 15px;
+      border-bottom: 1px solid var(--light-gray);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    
+    .chat-user-item:hover {
+      background: rgba(108, 92, 231, 0.1);
+    }
+    
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-right: 12px;
+      border: 2px solid white;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .user-info {
+      flex: 1;
+    }
+    
+    .user-name {
+      font-weight: 600;
+      color: var(--dark);
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .last-message {
+      font-size: 13px;
+      color: var(--gray);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 180px;
+    }
+
+    /* Основное окно чата */
+    .chat-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: white;
+    }
+    
+    .chat-header {
+      background: white;
+      padding: 15px 20px;
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid var(--light-gray);
+      z-index: 5;
+    }
+    
+    .chat-header img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-right: 12px;
+      border: 2px solid white;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .chat-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--dark);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .messages {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      background: white;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .no-chat-selected {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--gray);
+      text-align: center;
+      flex-direction: column;
+      padding: 20px;
+    }
+    
+    .no-chat-selected i {
+      font-size: 50px;
+      color: var(--primary);
+      margin-bottom: 20px;
+    }
+    
+    .no-chat-selected p {
+      font-size: 15px;
+      color: var(--gray);
+      max-width: 300px;
+      line-height: 1.5;
+    }
+    
+    .message {
+      max-width: 70%;
+      margin-bottom: 15px;
+      word-wrap: break-word;
+    }
+    
+    .message .bubble {
+      background: var(--light);
+      padding: 12px 16px;
+      border-radius: var(--border-radius);
+      display: inline-block;
+      box-shadow: var(--card-shadow);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    
+    .message.self {
+      align-self: flex-end;
+      text-align: right;
+    }
+    
+    .message.self .bubble {
+      background: var(--primary);
+      color: white;
+    }
+    
+    .timestamp {
+      font-size: 12px;
+      color: var(--gray);
+      margin-top: 5px;
+    }
+    
+    .chat-input {
+      display: flex;
+      padding: 15px;
+      background: white;
+      border-top: 1px solid var(--light-gray);
+      z-index: 5;
+    }
+    
+    .chat-input input {
+      flex: 1;
+      padding: 12px 15px;
+      border: 1px solid var(--light-gray);
+      border-radius: var(--border-radius);
+      background: white;
+      color: var(--dark);
+      font-size: 14px;
+      transition: var(--transition);
+    }
+    
+    .chat-input input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.2);
+    }
+    
+    .chat-input button {
+      margin-left: 10px;
+      padding: 12px 20px;
+      border: none;
+      border-radius: var(--border-radius);
+      background: var(--primary);
+      color: white;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    
+    .chat-input button:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+
+    /* Уведомления */
+    #adminNotifications {
+      position: fixed;
+      top: 80px;
+      right: 20px;
+      background: var(--danger);
+      color: white;
+      padding: 12px 20px;
+      border-radius: var(--border-radius);
+      font-size: 14px;
+      display: none;
+      z-index: 1000;
+      box-shadow: var(--card-shadow);
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Адаптация для мобильных устройств */
+    @media (max-width: 768px) {
+      :root {
+        --sidebar-width: 100%;
+      }
+      
+      .chat-container {
+        flex-direction: column;
+      }
+      
+      .sidebar {
+        width: 100%;
+        height: 40vh;
+        border-right: none;
+        border-bottom: 1px solid var(--light-gray);
+      }
+      
+      .chat-main {
+        width: 100%;
+        height: 60vh;
+      }
+      
+      .chat-header, .chat-input {
+        padding: 12px 15px;
+      }
+      
+      .message {
+        max-width: 85%;
+      }
+      
+      .no-chat-selected i {
+        font-size: 40px;
+      }
+      
+      .no-chat-selected p {
+        font-size: 14px;
+      }
+    }
+
+    /* Темная тема */
+    body.dark-mode {
+      background: #121212;
+      color: #e0e0e0;
+    }
+    
+    body.dark-mode .sidebar,
+    body.dark-mode .chat-header,
+    body.dark-mode .chat-input,
+    body.dark-mode .messages,
+    body.dark-mode .search-bar input,
+    body.dark-mode .chat-input input {
+      background: #1E1E1E;
+      color: #e0e0e0;
+    }
+    
+    body.dark-mode header,
+    body.dark-mode .search-results,
+    body.dark-mode .chat-user-item,
+    body.dark-mode .search-item {
+      background: #1E1E1E;
+      color: #e0e0e0;
+      border-color: #3D3D3D;
+    }
+    
+    body.dark-mode .user-name,
+    body.dark-mode .chat-title {
+      color: #e0e0e0;
+    }
+    
+    body.dark-mode .last-message,
+    body.dark-mode .timestamp,
+    body.dark-mode .no-chat-selected {
+      color: #b0b0b0;
+    }
+    
+    body.dark-mode .message .bubble {
+      background: #2D2D2D;
+      color: #e0e0e0;
+    }
+    
+    body.dark-mode .search-bar input,
+    body.dark-mode .chat-input input {
+      background: #2D2D2D;
+      border-color: #3D3D3D;
+      color: #e0e0e0;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo" onclick="window.location.href='index.html'">
+      <img src="images/logo (2).png" alt="GlovimPay" class="logo-img">
+      <span>GlovimPay</span>
+    </div>
+    <div class="header-actions">
+      <button class="theme-toggle" id="themeToggle">
+        <i class="fas fa-sun" id="themeIcon"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Уведомления -->
+  <div id="adminNotifications"></div>
+
+  <div class="chat-container">
+    <!-- Боковая панель -->
+    <div class="sidebar">
+      <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Введите ник..." />
+        <div class="search-results" id="searchResults"></div>
+      </div>
+      <div class="recent-chats" id="recentChatsList">
+        <!-- Здесь отображаются последние чаты -->
+      </div>
+    </div>
+    
+    <!-- Основное окно чата -->
+    <div class="chat-main">
+      <div class="chat-header" id="chatHeader" style="display: none;">
+        <img src="default-avatar.png" id="chatAvatar" alt="Аватар">
+        <div class="chat-title" id="chatTitle">Имя собеседника</div>
+      </div>
+      <div class="messages" id="messages">
+        <div class="no-chat-selected" id="noChatSelected">
+          <i class="fas fa-comments"></i>
+          <p>Найдите собеседника по нику<br>После отправки сообщения он появится в списке</p>
+        </div>
+      </div>
+      <div class="chat-input" id="chatInput" style="display: none;">
+        <input type="text" id="messageInput" placeholder="Введите сообщение..." />
+        <button id="sendBtn">Отправить</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Инициализация Firebase
+    var firebaseConfig = {
+      apiKey: "AIzaSyAhn2H2BExFFf7GO2k_YDfrwPiV_cYdUBg",
+      authDomain: "glovimplaye-b1023.firebaseapp.com",
+      databaseURL: "https://glovimplaye-b1023-default-rtdb.firebaseio.com",
+      projectId: "glovimplaye-b1023",
+      storageBucket: "glovimplaye-b1023.firebasestorage.app",
+      messagingSenderId: "553440591519",
+      appId: "1:553440591519:web:b7be45a9253689f322acaa"
+    };
+    firebase.initializeApp(firebaseConfig);
+
+    let currentUser = null;
+    let selectedUserId = null;
+    let chatRoomId = null;
+    let recentChats = [];
+
+    // Фиксированный UID для GlovimPlaye (и админ-сообщений)
+    const glovimplayeUID = "glovimplaye-special-uid";
+    const adminUID = glovimplayeUID;
+    const adminChatRoomId = "adminBroadcast";
+
+    // Функция для отображения ника с галочкой для GlovimPlaye
+    function getDisplayNameWithCheckmark(userObj) {
+      let displayName = userObj.nickname || "Без ника";
+      if (displayName === "GlovimPlaye") {
+        displayName += ' <i class="fas fa-check-circle" style="color:var(--primary);"></i>';
+      }
+      return displayName;
+    }
+
+    // Функция показа встроенных уведомлений
+    function showAdminNotification(text) {
+      const notifDiv = document.getElementById("adminNotifications");
+      notifDiv.innerText = text;
+      notifDiv.style.display = "block";
+      setTimeout(() => { notifDiv.style.display = "none"; }, 5000);
+    }
+
+    // Функция показа нативного уведомления через Web Notifications API
+    function showBrowserNotification(title, message) {
+      if (Notification.permission === "granted") {
+        new Notification(title, {
+          body: message,
+          icon: "Images/avatar.png"
+        });
+      }
+    }
+
+    // Сохранение и загрузка recentChats в localStorage
+    function saveRecentChats() {
+      localStorage.setItem("recentChats", JSON.stringify(recentChats));
+    }
+    function loadRecentChats() {
+      const stored = localStorage.getItem("recentChats");
+      if (stored) {
+        recentChats = JSON.parse(stored);
+        renderRecentChats();
+      }
+    }
+
+    // Авторизация и инициализация аккаунта
+    firebase.auth().onAuthStateChanged((user) => {
+      if (!user) {
+        firebase.auth().signInAnonymously().catch(err => console.error("Ошибка анонимного входа:", err));
+      } else {
+        currentUser = user;
+        loadRecentChats();
+        createGlovimPlayeAccount().then(() => {
+          addGlovimPlayeToRecentChats();
+          if (currentUser.uid === glovimplayeUID) {
+            addAdminPanelItem();
+            subscribeToAdminMessages();
+          }
+        });
+      }
+    });
+
+    // Создание или обновление аккаунта GlovimPlaye
+    function createGlovimPlayeAccount() {
+      return firebase.database().ref("users/" + glovimplayeUID).set({
+        nickname: "GlovimPlaye",
+        avatar: "Images/avatar.png"
+      });
+    }
+
+    // Добавление GlovimPlaye в recentChats (всегда первым)
+    function addGlovimPlayeToRecentChats() {
+      firebase.database().ref("users/" + glovimplayeUID).once("value", snap => {
+        const userData = snap.val();
+        if (!userData) return;
+        recentChats = recentChats.filter(u => u.uid !== glovimplayeUID);
+        recentChats.unshift({
+          uid: glovimplayeUID,
+          nickname: userData.nickname,
+          avatar: userData.avatar
+        });
+        renderRecentChats();
+        saveRecentChats();
+      });
+    }
+
+    // Добавление элемента админ-панели
+    function addAdminPanelItem() {
+      if (!recentChats.find(u => u.uid === adminChatRoomId)) {
+        recentChats.push({
+          uid: adminChatRoomId,
+          nickname: "Админ Панель",
+          avatar: "default-avatar.png"
+        });
+        renderRecentChats();
+        saveRecentChats();
+      }
+    }
+
+    // Подписка на сообщения админ-панели с уведомлениями
+    function subscribeToAdminMessages() {
+      firebase.database().ref("chats/playerok").on("child_added", (snapshot) => {
+        const msg = snapshot.val();
+        if (msg.senderId === adminUID) {
+          if (currentUser.uid === glovimplayeUID) {
+            showAdminNotification("Новое сообщение из админ-панели: " + msg.text);
+            showBrowserNotification("Админ Панель", msg.text);
+            displayMessage(msg);
+          }
+        }
+      });
+    }
+
+    // Поиск пользователей по нику
+    const searchInput = document.getElementById("searchInput");
+    const searchResultsDiv = document.getElementById("searchResults");
+    searchInput.addEventListener("input", () => {
+      const query = searchInput.value.trim().toLowerCase();
+      if (!query) {
+        searchResultsDiv.style.display = "none";
+        searchResultsDiv.innerHTML = "";
+        return;
+      }
+      firebase.database().ref("users").once("value", snapshot => {
+        let found = [];
+        snapshot.forEach(childSnap => {
+          const uid = childSnap.key;
+          if (currentUser && uid === currentUser.uid) return;
+          const userObj = childSnap.val();
+          userObj.uid = uid;
+          if ((userObj.nickname || "").toLowerCase().includes(query)) {
+            found.push(userObj);
+          }
+        });
+        renderSearchResults(found);
+      });
+    });
+
+    // Отображение результатов поиска
+    function renderSearchResults(users) {
+      searchResultsDiv.innerHTML = "";
+      if (users.length === 0) {
+        searchResultsDiv.innerHTML = "<div style='padding:12px;color:var(--gray);'>Ничего не найдено</div>";
+        searchResultsDiv.style.display = "block";
+        return;
+      }
+      users.forEach(userObj => {
+        const divItem = document.createElement("div");
+        divItem.classList.add("search-item");
+        divItem.innerHTML = getDisplayNameWithCheckmark(userObj);
+        divItem.addEventListener("click", () => {
+          selectUser(userObj.uid, userObj.nickname, userObj.avatar);
+          searchResultsDiv.style.display = "none";
+          searchResultsDiv.innerHTML = "";
+          searchInput.value = "";
+        });
+        searchResultsDiv.appendChild(divItem);
+      });
+      searchResultsDiv.style.display = "block";
+    }
+
+    // Выбор собеседника и открытие чата
+    function selectUser(uid, nickname, avatar) {
+      selectedUserId = uid;
+      chatRoomId = (uid === adminChatRoomId) ? adminChatRoomId :
+        (currentUser.uid < uid ? currentUser.uid + "_" + uid : uid + "_" + currentUser.uid);
+
+      document.getElementById("chatHeader").style.display = "flex";
+      document.getElementById("chatTitle").innerHTML = getDisplayNameWithCheckmark({ nickname: nickname, uid: uid });
+      document.getElementById("chatAvatar").src = avatar || "default-avatar.png";
+      document.getElementById("chatInput").style.display = "flex";
+      document.getElementById("noChatSelected").style.display = "none";
+
+      const messagesDiv = document.getElementById("messages");
+      messagesDiv.innerHTML = "";
+
+      firebase.database().ref("chats/" + chatRoomId).off();
+      firebase.database().ref("chats/" + chatRoomId).on("child_added", (snapshot) => {
+        const msg = snapshot.val();
+        displayMessage(msg);
+      });
+    }
+
+    // Отображение сообщения в окне чата
+    function displayMessage(msg) {
+      const messagesDiv = document.getElementById("messages");
+      const messageDiv = document.createElement("div");
+      messageDiv.classList.add("message");
+      if (msg.sender === (currentUser && currentUser.uid)) {
+        messageDiv.classList.add("self");
+      }
+      const timeString = new Date(msg.timestamp || Date.now()).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+      messageDiv.innerHTML = `
+        <div class="bubble">${msg.text}</div>
+        <div class="timestamp">${timeString}</div>
+      `;
+      messagesDiv.appendChild(messageDiv);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    // Отправка сообщения
+    document.getElementById("sendBtn").addEventListener("click", sendMessage);
+    document.getElementById("messageInput").addEventListener("keypress", e => {
+      if (e.key === "Enter") sendMessage();
+    });
+
+    function sendMessage() {
+      const input = document.getElementById("messageInput");
+      const text = input.value.trim();
+      if (!text || !chatRoomId) return;
+      const messageData = {
+        sender: currentUser.uid,
+        text: text,
+        timestamp: firebase.database.ServerValue.TIMESTAMP
+      };
+
+      if (chatRoomId === adminChatRoomId) {
+        firebase.database().ref("adminBroadcast").push(messageData);
+      } else {
+        firebase.database().ref("chats/" + chatRoomId).push(messageData);
+      }
+      input.value = "";
+
+      // Если чат не админ и выбранный пользователь не GlovimPlaye,
+      // перемещаем его в список recentChats сразу после GlovimPlaye
+      if (chatRoomId !== adminChatRoomId && selectedUserId !== glovimplayeUID) {
+        let chatIndex = recentChats.findIndex(u => u.uid === selectedUserId);
+        if (chatIndex !== -1) {
+          const userData = recentChats.splice(chatIndex, 1)[0];
+          const glovimIndex = recentChats.findIndex(u => u.uid === glovimplayeUID);
+          if (glovimIndex >= 0) {
+            recentChats.splice(glovimIndex + 1, 0, userData);
+          } else {
+            recentChats.unshift(userData);
+          }
+          renderRecentChats();
+          saveRecentChats();
+        } else {
+          firebase.database().ref("users/" + selectedUserId).once("value", snap => {
+            const userData = snap.val() || {};
+            userData.uid = selectedUserId;
+            const glovimIndex = recentChats.findIndex(u => u.uid === glovimplayeUID);
+            if (glovimIndex >= 0) {
+              recentChats.splice(glovimIndex + 1, 0, userData);
+            } else {
+              recentChats.unshift(userData);
+            }
+            renderRecentChats();
+            saveRecentChats();
+          });
+        }
+      }
+    }
+
+    // Отображение списка "последних чатов"
+    function renderRecentChats() {
+      const recentChatsList = document.getElementById("recentChatsList");
+      recentChatsList.innerHTML = "";
+      recentChats.forEach(userObj => {
+        const item = document.createElement("div");
+        item.classList.add("chat-user-item");
+        item.addEventListener("click", () => selectUser(userObj.uid, userObj.nickname, userObj.avatar));
+        item.innerHTML = `
+          <img src="${userObj.avatar || 'default-avatar.png'}" alt="Avatar" class="user-avatar">
+          <div class="user-info">
+            <div class="user-name">${getDisplayNameWithCheckmark(userObj)}</div>
+            <div class="last-message">Нажмите, чтобы начать чат</div>
+          </div>
+        `;
+        recentChatsList.appendChild(item);
+      });
+    }
+
+    // Переключение темы
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+    
+    function applyTheme(theme) {
+      if (theme === 'dark') {
+        document.body.classList.add('dark-mode');
+        themeIcon.className = "fas fa-moon";
+        localStorage.setItem('theme', 'dark');
+      } else {
+        document.body.classList.remove('dark-mode');
+        themeIcon.className = "fas fa-sun";
+        localStorage.setItem('theme', 'light');
+      }
+    }
+    
+    themeToggle.addEventListener('click', () => {
+      const currentTheme = localStorage.getItem('theme') || 'light';
+      applyTheme(currentTheme === 'light' ? 'dark' : 'light');
+    });
+    
+    // Применяем сохраненную тему при загрузке
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    applyTheme(savedTheme);
+
+    // Запрос разрешения на нативные уведомления
+    if (Notification.permission === "default") {
+      Notification.requestPermission().then(permission => {
+        console.log("Разрешение на уведомления:", permission);
+      });
+    }
+  </script>
+</body>
+</html>

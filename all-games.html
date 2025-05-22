@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Все игры</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #000;
+      font-family: Arial, sans-serif;
+      color: #fff;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 15px;
+    }
+    h1 {
+      font-size: 28px;
+      margin-bottom: 20px;
+      text-align: left;
+    }
+    .categories-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+      gap: 15px;
+      justify-items: start;
+    }
+    .category-card {
+      width: 80px;
+      text-align: center;
+      text-decoration: none;
+      color: inherit;
+      transition: transform 0.2s ease;
+    }
+    .category-card:hover {
+      transform: translateY(-2px);
+    }
+    .category-card img {
+      width: 60px;
+      height: 60px;
+      border-radius: 6px;
+      object-fit: cover;
+      margin-bottom: 5px;
+    }
+    .category-card .subcategory {
+      font-size: 10px;
+      font-weight: 600;
+      color: #ccc;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Все игры</h1>
+    <div class="categories-container">
+      <a href="game1.html" class="category-card">
+        <img src="images/cal of duty.jpg" alt="Call of Duty">
+        <div class="subcategory">Call of Duty</div>
+      </a>
+      <a href="game2.html" class="category-card">
+        <img src="images/csgo.jpg" alt="Counter-Strike">
+        <div class="subcategory">Counter-Strike</div>
+      </a>
+      <a href="game3.html" class="category-card">
+        <img src="images/dota.jpg" alt="Dota 2">
+        <div class="subcategory">Dota 2</div>
+      </a>
+      <a href="game4.html" class="category-card">
+        <img src="images/ea.jpg" alt="EA Sports">
+        <div class="subcategory">EA Sports</div>
+      </a>
+      <a href="game5.html" class="category-card">
+        <img src="images/fortna.jpg" alt="Fortnite">
+        <div class="subcategory">Fortnite</div>
+      </a>
+      <a href="game6.html" class="category-card">
+        <img src="images/gta.jpg" alt="GTA 5 Online">
+        <div class="subcategory">GTA 5 Online</div>
+      </a>
+      <a href="game7.html" class="category-card">
+        <img src="images/main.jpg" alt="Minecraft">
+        <div class="subcategory">Minecraft</div>
+      </a>
+      <a href="game8.html" class="category-card">
+        <img src="images/pabg mobael.jpg" alt="PUBG Mobile">
+        <div class="subcategory">PUBG Mobile</div>
+      </a>
+      <a href="game9.html" class="category-card">
+        <img src="images/roblox.jpg" alt="Roblox">
+        <div class="subcategory">Roblox</div>
+      </a>
+      <a href="game10.html" class="category-card">
+        <img src="images/rust.png" alt="Rust">
+        <div class="subcategory">Rust</div>
+      </a>
+      <a href="game11.html" class="category-card">
+        <img src="images/standoff2.jpg" alt="Standoff 2">
+        <div class="subcategory">Standoff 2</div>
+      </a>
+      <a href="game12.html" class="category-card">
+        <img src="images/pabg.png" alt="PUBG">
+        <div class="subcategory">PUBG</div>
+      </a>
+      <!-- Дополнительные карточки можно добавить по необходимости -->
+    </div>
+  </div>
+</body>
+</html>

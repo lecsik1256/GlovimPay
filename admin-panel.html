@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Админ панель | GlovimPlaye</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+    }
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    h1, h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    form {
+      margin-bottom: 30px;
+      border: 1px solid #ddd;
+      padding: 15px;
+      border-radius: 6px;
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: bold;
+    }
+    input, button, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 12px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      background: #ff7f50;
+      border: none;
+      color: #fff;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background: #ff4500;
+    }
+    .message {
+      padding: 10px;
+      background: #e7f3fe;
+      border: 1px solid #b3d4fc;
+      border-radius: 4px;
+      margin-bottom: 12px;
+    }
+    .requests-container {
+      margin-top: 40px;
+    }
+    .request {
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 10px;
+      margin-bottom: 15px;
+      background: #fafafa;
+    }
+    .request p {
+      margin: 5px 0;
+    }
+    .request button {
+      margin-right: 10px;
+      width: auto;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Админ панель</h1>
+  <div id="adminMessage"></div>
+
+  <!-- Форма для начисления денег -->
+  <form id="creditForm">
+    <label for="creditUserId">ID пользователя</label>
+    <input type="text" id="creditUserId" placeholder="Введите UID пользователя" required>
+    
+    <label for="creditAmount">Сумма для начисления (₽)</label>
+    <input type="number" id="creditAmount" placeholder="Введите сумму" required>
+    
+    <button type="submit">Начислить деньги</button>
+  </form>
+
+  <!-- Форма для разбана пользователя -->
+  <form id="unbanForm">
+    <label for="unbanUserId">ID пользователя для разбана</label>
+    <input type="text" id="unbanUserId" placeholder="Введите UID пользователя" required>
+    
+    <button type="submit">Разбанить пользователя</button>
+  </form>
+  
+  <!-- Форма для бана пользователя с указанием временного бана и причины -->
+  <form id="banForm">
+    <label for="banUserId">ID пользователя</label>
+    <input type="text" id="banUserId" placeholder="Введите UID пользователя" required>
+    
+    <label for="banDuration">Длительность бана (дней, 0 – перманентный)</label>
+    <input type="number" id="banDuration" placeholder="Например, 7" required>
+    
+    <label for="banReason">Причина бана</label>
+    <input type="text" id="banReason" placeholder="Напишите причину бана" required>
+    
+    <button type="submit">Забанить пользователя</button>
+  </form>
+  
+  <!-- Форма для отправки сообщения в чат GlovimPlaye -->
+  <form id="globalMessageForm">
+    <label for="globalMessage">Сообщение для чата GlovimPlaye</label>
+    <textarea id="globalMessage" rows="4" placeholder="Введите текст сообщения"></textarea>
+    <button type="submit">Отправить сообщение</button>
+  </form>
+
+  <!-- Секция для заявок на пополнение баланса -->
+  <div class="requests-container">
+    <h2>Заявки на пополнение баланса</h2>
+    <div id="topUpRequestsList">
+      <!-- Здесь будут отображаться заявки -->
+    </div>
+  </div>
+  
+  <button onclick="logout()">Выйти</button>
+</div>
+
+<script>
+  // Firebase конфигурация (замените на свои данные)
+  var firebaseConfig = {
+    apiKey: "AIzaSyAhn2H2BExFFf7GO2k_YDfrwPiV_cYdUBg",
+    authDomain: "glovimplaye-b1023.firebaseapp.com",
+    databaseURL: "https://glovimplaye-b1023-default-rtdb.firebaseio.com",
+    projectId: "glovimplaye-b1023",
+    storageBucket: "glovimplaye-b1023.firebasestorage.app",
+    messagingSenderId: "553440591519",
+    appId: "1:553440591519:web:b7be45a9253689f322acaa"
+  };
+  firebase.initializeApp(firebaseConfig);
+  
+  // Проверка авторизации и прав администратора
+  firebase.auth().onAuthStateChanged(function(user) {
+    if (user) {
+      firebase.database().ref('users/' + user.uid).once('value').then(snapshot => {
+        let userData = snapshot.val();
+        // Здесь проверяем поле role, например, "admin"
+        if (!userData || userData.role !== "admin") {
+          alert("У вас нет прав для доступа к админ-панели.");
+          window.location.href = "index.html";
+        }
+      });
+    } else {
+      window.location.href = "login.html";
+    }
+  });
+  
+  // --- Форма начисления денег ---
+  document.getElementById('creditForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    let targetUid = document.getElementById('creditUserId').value.trim();
+    let amount = parseFloat(document.getElementById('creditAmount').value);
+    
+    if (!targetUid || isNaN(amount) || amount <= 0) {
+      showMessage("Пожалуйста, заполните поля корректно.");
+      return;
+    }
+    
+    let userRef = firebase.database().ref('users/' + targetUid);
+    userRef.once('value').then(snapshot => {
+      let userData = snapshot.val();
+      if (!userData) {
+        showMessage("Пользователь не найден.");
+        return;
+      }
+      let currentBalance = parseFloat(userData.balance) || 0;
+      let newBalance = currentBalance + amount;
+      userRef.update({ balance: newBalance }).then(() => {
+        showMessage("Баланс пользователя успешно обновлён: " + newBalance + " ₽");
+      }).catch(err => {
+        showMessage("Ошибка при обновлении баланса: " + err.message);
+      });
+    });
+  });
+  
+  // --- Форма разбанивания пользователя ---
+  document.getElementById('unbanForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    let targetUid = document.getElementById('unbanUserId').value.trim();
+    
+    if (!targetUid) {
+      showMessage("Пожалуйста, введите UID пользователя для разбана.");
+      return;
+    }
+    
+    let userRef = firebase.database().ref('users/' + targetUid);
+    userRef.once('value').then(snapshot => {
+      let userData = snapshot.val();
+      if (!userData) {
+        showMessage("Пользователь не найден.");
+        return;
+      }
+      
+      userRef.update({ banned: false, unbanAt: null })
+        .then(() => {
+          showMessage("Пользователь успешно разбанен.");
+        })
+        .catch(err => {
+          showMessage("Ошибка при разбане пользователя: " + err.message);
+        });
+    });
+  });
+  
+  // --- Форма бана пользователя (временный/перманентный) с указанием причины ---
+  document.getElementById('banForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    let targetUid = document.getElementById('banUserId').value.trim();
+    let banDuration = parseInt(document.getElementById('banDuration').value, 10);
+    let banReason = document.getElementById('banReason').value.trim();
+
+    if (!targetUid || isNaN(banDuration) || banDuration < 0 || !banReason) {
+      showMessage("Пожалуйста, заполните все поля корректно.");
+      return;
+    }
+
+    let banData = {
+      banned: true,
+      banReason: banReason
+    };
+    if (banDuration > 0) {
+      let unbanTimestamp = Date.now() + banDuration * 24 * 60 * 60 * 1000;
+      banData.unbanAt = unbanTimestamp;
+    } else {
+      banData.unbanAt = null; // перманентный бан
+    }
+
+    let userRef = firebase.database().ref('users/' + targetUid);
+    userRef.once('value').then(snapshot => {
+      let userData = snapshot.val();
+      if (!userData) {
+        showMessage("Пользователь не найден.");
+        return;
+      }
+      userRef.update(banData).then(() => {
+        showMessage("Пользователь забанен " + (banDuration > 0 ? ("на " + banDuration + " дней") : "навсегда") + ". Причина: " + banReason);
+      }).catch(err => {
+        showMessage("Ошибка при бане пользователя: " + err.message);
+      });
+    });
+  });
+  
+  // --- Форма отправки сообщения в чат GlovimPlaye ---
+  document.getElementById('globalMessageForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    let msgText = document.getElementById('globalMessage').value.trim();
+    if (!msgText) {
+      showMessage("Введите сообщение!");
+      return;
+    }
+    let chatRef = firebase.database().ref("chats/playerok");
+    let newMsg = {
+      senderId: "glovimplaye-special-uid",
+      senderName: "GlovimPlaye",
+      text: msgText,
+      timestamp: firebase.database.ServerValue.TIMESTAMP
+    };
+    chatRef.push(newMsg)
+      .then(() => {
+        showMessage("Сообщение отправлено в чат GlovimPlaye!");
+        document.getElementById('globalMessage').value = "";
+      })
+      .catch(err => showMessage("Ошибка отправки сообщения: " + err.message));
+  });
+
+  // --- Загрузка заявок на пополнение баланса ---
+  function loadTopUpRequests() {
+    const requestsRef = firebase.database().ref("topUpRequests");
+    requestsRef.on("value", snapshot => {
+      const requestsList = document.getElementById("topUpRequestsList");
+      requestsList.innerHTML = "";
+      snapshot.forEach(childSnapshot => {
+        let request = childSnapshot.val();
+        let requestKey = childSnapshot.key;
+        if (request.status === "pending") {
+          let div = document.createElement("div");
+          div.className = "request";
+          let createdAt = new Date(request.createdAt).toLocaleString("ru-RU");
+          div.innerHTML = `
+            <p><strong>Пользователь:</strong> ${request.userId}</p>
+            <p><strong>Сумма:</strong> ${request.amount} ₽</p>
+            <p><strong>Дата:</strong> ${createdAt}</p>
+            <button onclick="approveRequest('${requestKey}', '${request.userId}', ${request.amount})">Одобрить</button>
+            <button onclick="rejectRequest('${requestKey}')">Отклонить</button>
+          `;
+          requestsList.appendChild(div);
+        }
+      });
+    });
+  }
+  
+  // --- Одобрить заявку на пополнение ---
+  function approveRequest(requestKey, userId, amount) {
+    let requestRef = firebase.database().ref("topUpRequests/" + requestKey);
+    requestRef.update({ status: "approved" })
+      .then(() => {
+        let userRef = firebase.database().ref("users/" + userId);
+        userRef.once("value").then(snapshot => {
+          let userData = snapshot.val() || {};
+          let currentBalance = parseFloat(userData.balance) || 0;
+          let newBalance = currentBalance + parseFloat(amount);
+          userRef.update({ balance: newBalance })
+            .then(() => {
+              showMessage("Заявка одобрена, баланс пользователя обновлён.");
+            })
+            .catch(err => {
+              showMessage("Ошибка обновления баланса: " + err.message);
+            });
+        });
+      })
+      .catch(err => {
+        showMessage("Ошибка при одобрении заявки: " + err.message);
+      });
+  }
+  
+  // --- Отклонить заявку ---
+  function rejectRequest(requestKey) {
+    let requestRef = firebase.database().ref("topUpRequests/" + requestKey);
+    requestRef.update({ status: "rejected" })
+      .then(() => {
+        showMessage("Заявка отклонена.");
+      })
+      .catch(err => {
+        showMessage("Ошибка при отклонении заявки: " + err.message);
+      });
+  }
+  
+  // --- Функция для вывода служебных сообщений ---
+  function showMessage(message) {
+    let msgDiv = document.getElementById('adminMessage');
+    msgDiv.innerHTML = '<div class="message">' + message + '</div>';
+    setTimeout(() => { msgDiv.innerHTML = ''; }, 5000);
+  }
+  
+  // --- Функция выхода ---
+  function logout() {
+    firebase.auth().signOut().then(() => {
+      window.location.href = "login.html";
+    }).catch(err => {
+      showMessage("Ошибка выхода: " + err.message);
+    });
+  }
+  
+  // --- Запускаем загрузку заявок при загрузке страницы ---
+  loadTopUpRequests();
+</script>
+
+</body>
+</html>

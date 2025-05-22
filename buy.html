@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Купить | GlovimPlaye</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Firebase (v8) -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+  <!-- Font Awesome для иконок (опционально) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+
+  <style>
+    /* Сбрасываем отступы */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7f7f7;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #333;
+      color: #fff;
+      padding: 15px;
+      text-align: center;
+    }
+
+    /* Контейнер для содержимого */
+    .container {
+      flex: 1; /* чтобы занять доступное пространство по высоте */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .buy-box {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      padding: 30px;
+      text-align: center;
+      max-width: 400px;
+      width: 100%;
+    }
+
+    .buy-box h2 {
+      color: #ff7f50;
+      margin-bottom: 20px;
+    }
+
+    .buy-btn {
+      display: inline-block;
+      background: #ff7f50;
+      color: #fff;
+      border: none;
+      padding: 14px 25px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background 0.3s;
+      margin-top: 15px;
+    }
+
+    .buy-btn:hover {
+      background: #ff4500;
+    }
+
+    .info-text {
+      font-size: 16px;
+      margin-bottom: 20px;
+    }
+
+    /* Адаптация под мобильные устройства */
+    @media (max-width: 480px) {
+      .buy-box {
+        margin: 0 10px;
+      }
+      .info-text {
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Купить</h1>
+</header>
+
+<div class="container">
+  <div class="buy-box">
+    <h2>Оформить покупку</h2>
+    <p class="info-text">
+      Нажмите на кнопку, чтобы перейти к оформлению заказа.  
+      <!-- Либо сразу оформить заказ, если вы хотите -->
+    </p>
+    <button class="buy-btn" id="buyNowBtn">Купить</button>
+  </div>
+</div>
+
+<script>
+  // Конфигурация Firebase
+  var firebaseConfig = {
+    apiKey: "AIzaSyA...",
+    authDomain: "glovimplaye-b1023.firebaseapp.com",
+    databaseURL: "https://glovimplaye-b1023-default-rtdb.firebaseio.com",
+    projectId: "glovimplaye-b1023",
+    storageBucket: "glovimplaye-b1023.appspot.com",
+    messagingSenderId: "553440591519",
+    appId: "1:553440591519:web:b7be45a9253689f322acaa"
+  };
+  // Инициализируем Firebase
+  firebase.initializeApp(firebaseConfig);
+
+  // Логика при клике на кнопку
+  document.getElementById('buyNowBtn').addEventListener('click', function() {
+    // 1) Вариант: Просто переходим на страницу оформления
+    window.location.href = "checkout.html?id=123"; // Пример: checkout.html?id=ID_товара
+
+    // 2) Вариант: Сразу оформляем заказ через Firebase, если у вас есть данные
+    // Примерно так:
+    /*
+    const currentUser = JSON.parse(localStorage.getItem("user"));
+    if (!currentUser) {
+      alert("Пожалуйста, войдите в систему для оформления заказа.");
+      return;
+    }
+
+    const orderData = {
+      productId: "123",
+      productName: "Товар",
+      productPrice: "500",
+      sellerName: "Продавец",
+      buyer: currentUser.displayName,
+      address: "Адрес",
+      createdAt: firebase.database.ServerValue.TIMESTAMP
+    };
+
+    firebase.database().ref('orders').push(orderData, function(error) {
+      if (error) {
+        alert("Ошибка оформления заказа: " + error.message);
+      } else {
+        alert("Заказ успешно оформлен!");
+      }
+    });
+    */
+  });
+</script>
+
+</body>
+</html>

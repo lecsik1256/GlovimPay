@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Вход | GlovimPay</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <!-- Firebase v8 -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+  <!-- Phone input library -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/css/intlTelInput.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/intlTelInput.min.js"></script>
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* Основные переменные */
+    :root {
+      --primary: #6C5CE7;
+      --primary-dark: #5649C0;
+      --secondary: #00B894;
+      --accent: #FD79A8;
+      --dark: #2D3436;
+      --light: #F5F6FA;
+      --gray: #636E72;
+      --light-gray: #DFE6E9;
+      --success: #00B894;
+      --warning: #FDCB6E;
+      --danger: #D63031;
+      --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      --border-radius: 12px;
+    }
+    
+    /* Общие стили */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+    
+    body {
+      background-color: var(--light);
+      color: var(--dark);
+      line-height: 1.6;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+    
+    button, input, textarea, select {
+      font-family: inherit;
+      outline: none;
+    }
+    
+    /* Хедер */
+    header {
+      background: white;
+      padding: 15px 30px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: var(--card-shadow);
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--primary);
+      cursor: pointer;
+    }
+    
+    .logo-img {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      object-fit: cover;
+    }
+    
+    /* Основной контент */
+    .login-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+    
+    .login-card {
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--card-shadow);
+      padding: 40px;
+      width: 100%;
+      max-width: 500px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .login-title {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 30px;
+      color: var(--dark);
+      position: relative;
+    }
+    
+    .login-title::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 50px;
+      height: 3px;
+      background: var(--primary);
+      border-radius: 2px;
+    }
+    
+    /* Формы */
+    .form-group {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: var(--dark);
+      font-size: 14px;
+    }
+    
+    .form-group input, 
+    .form-group select {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1px solid var(--light-gray);
+      border-radius: var(--border-radius);
+      font-size: 14px;
+      transition: var(--transition);
+      background: white;
+    }
+    
+    .form-group input:focus,
+    .form-group select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.2);
+    }
+    
+    /* Стили для телефонного ввода */
+    .phone-input {
+      width: 100%;
+    }
+    
+    /* Кнопки */
+    .btn {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: var(--border-radius);
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+    
+    .btn-google {
+      background: white;
+      color: var(--dark);
+      border: 1px solid var(--light-gray);
+    }
+    
+    .btn-google:hover {
+      background: var(--light);
+      transform: translateY(-2px);
+    }
+    
+    /* Разделитель */
+    .separator {
+      margin: 25px 0;
+      position: relative;
+      text-align: center;
+      color: var(--gray);
+      font-size: 14px;
+    }
+    
+    .separator::before,
+    .separator::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      width: 40%;
+      height: 1px;
+      background: var(--light-gray);
+    }
+    
+    .separator::before {
+      left: 0;
+    }
+    
+    .separator::after {
+      right: 0;
+    }
+    
+    /* Футер */
+    footer {
+      background: white;
+      text-align: center;
+      padding: 20px;
+      color: var(--gray);
+      font-size: 14px;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+    }
+    
+    /* Сообщения об ошибках */
+    .error-message {
+      color: var(--danger);
+      font-size: 14px;
+      margin-top: 5px;
+      display: none;
+    }
+    
+    /* Шаги регистрации */
+    .registration-steps {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 30px;
+      gap: 15px;
+    }
+    
+    .step {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--light-gray);
+      color: var(--gray);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      position: relative;
+    }
+    
+    .step.active {
+      background: var(--primary);
+      color: white;
+    }
+    
+    .step.completed {
+      background: var(--success);
+      color: white;
+    }
+    
+    .step::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 100%;
+      width: 15px;
+      height: 2px;
+      background: var(--light-gray);
+    }
+    
+    .step:last-child::after {
+      display: none;
+    }
+    
+    /* Адаптация для мобильных устройств */
+    @media (max-width: 768px) {
+      .login-card {
+        padding: 30px 20px;
+      }
+      
+      header {
+        padding: 15px 20px;
+      }
+      
+      .registration-steps {
+        gap: 10px;
+      }
+      
+      .step::after {
+        width: 10px;
+      }
+    }
+    
+    /* Темная тема */
+    body.dark-mode {
+      background: #121212;
+      color: #e0e0e0;
+    }
+    
+    body.dark-mode header,
+    body.dark-mode .login-card,
+    body.dark-mode footer {
+      background: #1E1E1E;
+    }
+    
+    body.dark-mode .form-group input,
+    body.dark-mode .form-group select {
+      background: #2D2D2D;
+      border-color: #3D3D3D;
+      color: #e0e0e0;
+    }
+    
+    body.dark-mode .form-group label {
+      color: #e0e0e0;
+    }
+    
+    body.dark-mode .btn-google {
+      background: #2D2D2D;
+      color: #e0e0e0;
+      border-color: #3D3D3D;
+    }
+    
+    body.dark-mode .btn-google:hover {
+      background: #3D3D3D;
+    }
+    
+    body.dark-mode .separator::before,
+    body.dark-mode .separator::after {
+      background: #3D3D3D;
+    }
+    
+    body.dark-mode .step {
+      background: #3D3D3D;
+    }
+    
+    body.dark-mode .step::after {
+      background: #3D3D3D;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo" onclick="window.location.href='index.html'">
+      <img src="images/logo (2).png" alt="GlovimPay" class="logo-img">
+      <span>GlovimPay</span>
+    </div>
+  </header>
+  
+  <div class="login-container">
+    <div class="login-card">
+      <!-- Шаги регистрации -->
+      <div class="registration-steps">
+        <div class="step" id="step1">1</div>
+        <div class="step" id="step2">2</div>
+        <div class="step" id="step3">3</div>
+      </div>
+      
+      <!-- Шаг 1: Выбор аккаунта -->
+      <div id="step1-content">
+        <h1 class="login-title">Вход в аккаунт</h1>
+        
+        <button class="btn btn-google" onclick="loginWithGoogle()">
+          <i class="fab fa-google"></i> Войти через Google
+        </button>
+        
+        <div class="separator">или</div>
+        
+        <div class="form-group">
+          <label for="emailInput">Email</label>
+          <input type="email" id="emailInput" placeholder="Введите ваш email">
+          <div id="emailError" class="error-message"></div>
+        </div>
+        
+        <div class="form-group">
+          <label for="passwordInput">Пароль</label>
+          <input type="password" id="passwordInput" placeholder="Введите ваш пароль">
+          <div id="passwordError" class="error-message"></div>
+        </div>
+        
+        <button class="btn btn-primary" onclick="loginWithEmail()">
+          <i class="fas fa-sign-in-alt"></i> Войти
+        </button>
+      </div>
+      
+      <!-- Шаг 2: Выбор никнейма -->
+      <div id="step2-content" style="display: none;">
+        <h1 class="login-title">Выберите никнейм</h1>
+        
+        <div class="form-group">
+          <label for="usernameInput">Никнейм</label>
+          <input type="text" id="usernameInput" placeholder="Придумайте уникальный никнейм">
+          <div id="usernameError" class="error-message"></div>
+        </div>
+        
+        <div class="form-group">
+          <label for="accountType">Тип аккаунта</label>
+          <select id="accountType">
+            <option value="personal">Личный аккаунт</option>
+            <option value="business">Бизнес аккаунт</option>
+          </select>
+        </div>
+        
+        <button class="btn btn-primary" onclick="saveUsername()">
+          <i class="fas fa-arrow-right"></i> Продолжить
+        </button>
+      </div>
+      
+      <!-- Шаг 3: Подтверждение телефона -->
+      <div id="step3-content" style="display: none;">
+        <h1 class="login-title">Подтвердите телефон</h1>
+        
+        <div class="form-group">
+          <label for="phoneInput">Номер телефона</label>
+          <input type="tel" id="phoneInput" class="phone-input">
+          <div id="phoneError" class="error-message"></div>
+        </div>
+        
+        <div class="form-group" id="codeGroup" style="display: none;">
+          <label for="codeInput">Код подтверждения</label>
+          <input type="text" id="codeInput" placeholder="Введите код из SMS">
+          <div id="codeError" class="error-message"></div>
+        </div>
+        
+        <button class="btn btn-primary" id="phoneButton" onclick="sendPhoneCode()">
+          <i class="fas fa-mobile-alt"></i> Отправить код
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    © 2025 GlovimPay. Все права защищены.
+  </footer>
+
+  <script>
+    // Firebase конфигурация
+    var firebaseConfig = {
+      apiKey: "AIzaSyAhn2H2BExFFf7GO2k_YDfrwPiV_cYdUBg",
+      authDomain: "glovimplaye-b1023.firebaseapp.com",
+      databaseURL: "https://glovimplaye-b1023-default-rtdb.firebaseio.com",
+      projectId: "glovimplaye-b1023",
+      storageBucket: "glovimplaye-b1023.firebasestorage.app",
+      messagingSenderId: "553440591519",
+      appId: "1:553440591519:web:b7be45a9253689f322acaa"
+    };
+    
+    // Инициализация Firebase
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+
+    // Инициализация телефонного ввода
+    const phoneInput = document.querySelector("#phoneInput");
+    const iti = window.intlTelInput(phoneInput, {
+      initialCountry: "auto",
+      geoIpLookup: function(callback) {
+        fetch("https://ipapi.co/json/")
+          .then(res => res.json())
+          .then(data => callback(data.country_code))
+          .catch(() => callback("ru"));
+      },
+      utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.js"
+    });
+
+    // Переменные для хранения данных пользователя
+    let currentUser = null;
+    let verificationId = null;
+    let isNewUser = false;
+
+    // Получаем параметр редиректа
+    function getParameterByName(name, url = window.location.href) {
+      name = name.replace(/[\[\]]/g, '\\$&');
+      var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+          results = regex.exec(url);
+      if (!results) return null;
+      if (!results[2]) return '';
+      return decodeURIComponent(results[2].replace(/\+/g, ' '));
+    }
+    
+    const redirectUrl = getParameterByName('redirect') || 'profile.html';
+
+    function showError(elementId, message) {
+      const element = document.getElementById(elementId);
+      element.textContent = message;
+      element.style.display = 'block';
+    }
+    
+    function hideError(elementId) {
+      const element = document.getElementById(elementId);
+      element.style.display = 'none';
+    }
+
+    function showStep(stepNumber) {
+      // Скрываем все шаги
+      document.getElementById('step1-content').style.display = 'none';
+      document.getElementById('step2-content').style.display = 'none';
+      document.getElementById('step3-content').style.display = 'none';
+      
+      // Показываем нужный шаг
+      document.getElementById(`step${stepNumber}-content`).style.display = 'block';
+      
+      // Обновляем индикаторы шагов
+      for (let i = 1; i <= 3; i++) {
+        const step = document.getElementById(`step${i}`);
+        step.classList.remove('active', 'completed');
+        
+        if (i < stepNumber) {
+          step.classList.add('completed');
+        } else if (i === stepNumber) {
+          step.classList.add('active');
+        }
+      }
+    }
+
+    function loginWithGoogle() {
+      var provider = new firebase.auth.GoogleAuthProvider();
+      firebase.auth().signInWithPopup(provider)
+        .then((result) => {
+          currentUser = result.user;          // Проверяем, новый ли это пользователь
+          isNewUser = result.additionalUserInfo.isNewUser;
+          checkUserData(currentUser);
+        })
+        .catch((error) => {
+          console.error("Ошибка входа через Google:", error);
+          showError('passwordError', error.message);
+        });
+    }
+
+    function loginWithEmail() {
+      const email = document.getElementById('emailInput').value.trim();
+      const password = document.getElementById('passwordInput').value;
+      
+      // Сбрасываем ошибки
+      hideError('emailError');
+      hideError('passwordError');
+      
+      // Валидация
+      if (!email) {
+        showError('emailError', 'Пожалуйста, введите email');
+        return;
+      }
+      
+      if (!password) {
+        showError('passwordError', 'Пожалуйста, введите пароль');
+        return;
+      }
+      
+      firebase.auth().signInWithEmailAndPassword(email, password)
+        .then((result) => {
+          currentUser = result.user;
+          isNewUser = false; // Если вошел, значит не новый пользователь
+          checkUserData(currentUser);
+        })
+        .catch((error) => {
+          // Если пользователь не найден, предлагаем зарегистрироваться
+          if (error.code === 'auth/user-not-found') {
+            firebase.auth().createUserWithEmailAndPassword(email, password)
+              .then((result) => {
+                currentUser = result.user;
+                isNewUser = true;
+                showStep(2); // Переходим к выбору никнейма
+              })
+              .catch((error) => {
+                console.error("Ошибка регистрации:", error);
+                showError('passwordError', error.message);
+              });
+          } else {
+            console.error("Ошибка входа:", error);
+            showError('passwordError', error.message);
+          }
+        });
+    }
+
+    function checkUserData(user) {
+      const userId = user.uid;
+      firebase.database().ref('users/' + userId).once('value')
+        .then(snapshot => {
+          if (snapshot.exists()) {
+            // Если пользователь существует и данные заполнены, перенаправляем
+            window.location.href = redirectUrl;
+          } else {
+            // Если это новый пользователь или данные не заполнены
+            if (isNewUser) {
+              showStep(2); // Переходим к выбору никнейма
+            } else {
+              // Старый пользователь, но без данных - возможно, прервал регистрацию
+              showStep(2); // Продолжаем с шага 2
+            }
+          }
+        })
+        .catch(error => {
+          console.error("Ошибка проверки данных:", error);
+          window.location.href = redirectUrl;
+        });
+    }
+
+    function saveUsername() {
+      const username = document.getElementById('usernameInput').value.trim();
+      const accountType = document.getElementById('accountType').value;
+      
+      // Сбрасываем ошибки
+      hideError('usernameError');
+      
+      // Валидация
+      if (!username) {
+        showError('usernameError', 'Пожалуйста, введите никнейм');
+        return;
+      }
+      
+      if (username.length < 3) {
+        showError('usernameError', 'Никнейм должен быть не менее 3 символов');
+        return;
+      }
+      
+      // Проверяем уникальность никнейма
+      firebase.database().ref('usernames').once('value')
+        .then(snapshot => {
+          if (snapshot.hasChild(username)) {
+            showError('usernameError', 'Этот никнейм уже занят');
+          } else {
+            // Сохраняем данные пользователя
+            const userData = {
+              username: username,
+              accountType: accountType,
+              email: currentUser.email,
+              createdAt: firebase.database.ServerValue.TIMESTAMP,
+              lastLogin: firebase.database.ServerValue.TIMESTAMP
+            };
+            
+            // Сохраняем в базу данных
+            const updates = {};
+            updates['/users/' + currentUser.uid] = userData;
+            updates['/usernames/' + username] = currentUser.uid;
+            
+            firebase.database().ref().update(updates)
+              .then(() => {
+                showStep(3); // Переходим к подтверждению телефона
+              })
+              .catch(error => {
+                console.error("Ошибка сохранения данных:", error);
+                showError('usernameError', 'Ошибка сохранения данных');
+              });
+          }
+        })
+        .catch(error => {
+          console.error("Ошибка проверки никнейма:", error);
+          showError('usernameError', 'Ошибка проверки никнейма');
+        });
+    }
+
+    function sendPhoneCode() {
+      const phoneNumber = iti.getNumber();
+      
+      // Сбрасываем ошибки
+      hideError('phoneError');
+      
+      // Валидация
+      if (!phoneNumber || !iti.isValidNumber()) {
+        showError('phoneError', 'Пожалуйста, введите корректный номер телефона');
+        return;
+      }
+      
+      // Настраиваем reCAPTCHA для Firebase Auth
+      const appVerifier = new firebase.auth.RecaptchaVerifier('phoneButton', {
+        size: 'invisible',
+        callback: () => {
+          // reCAPTCHA решена, можно отправлять SMS
+        }
+      });
+      
+      // Отправляем SMS с кодом подтверждения
+      firebase.auth().signInWithPhoneNumber(phoneNumber, appVerifier)
+        .then(confirmationResult => {
+          verificationId = confirmationResult.verificationId;
+          
+          // Показываем поле для ввода кода
+          document.getElementById('codeGroup').style.display = 'block';
+          document.getElementById('phoneButton').textContent = 'Подтвердить';
+          document.getElementById('phoneButton').onclick = verifyPhoneCode;
+        })
+        .catch(error => {
+          console.error("Ошибка отправки SMS:", error);
+          showError('phoneError', error.message);
+        });
+    }
+
+    function verifyPhoneCode() {
+      const code = document.getElementById('codeInput').value.trim();
+      
+      // Сбрасываем ошибки
+      hideError('codeError');
+      
+      // Валидация
+      if (!code) {
+        showError('codeError', 'Пожалуйста, введите код подтверждения');
+        return;
+      }
+      
+      // Создаем учетные данные для подтверждения телефона
+      const credential = firebase.auth.PhoneAuthProvider.credential(verificationId, code);
+      
+      // Связываем телефон с аккаунтом
+      currentUser.linkWithCredential(credential)
+        .then(() => {
+          // Обновляем данные пользователя с номером телефона
+          return firebase.database().ref('users/' + currentUser.uid).update({
+            phoneNumber: iti.getNumber(),
+            phoneVerified: true
+          });
+        })
+        .then(() => {
+          // Перенаправляем пользователя
+          window.location.href = redirectUrl;
+        })
+        .catch(error => {
+          console.error("Ошибка подтверждения телефона:", error);
+          showError('codeError', error.message);
+        });
+    }
+
+    // Обработка нажатия Enter в полях ввода
+    document.getElementById('passwordInput').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        loginWithEmail();
+      }
+    });
+
+    document.getElementById('usernameInput').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        saveUsername();
+      }
+    });
+
+    document.getElementById('codeInput').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        verifyPhoneCode();
+      }
+    });
+
+    // Проверяем состояние аутентификации при загрузке страницы
+    firebase.auth().onAuthStateChanged(user => {
+      if (user) {
+        // Пользователь уже вошел - проверяем его данные
+        currentUser = user;
+        checkUserData(user);
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>GlovimPay - Платформа цифровых товаров</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="GlovimPay - безопасная площадка для покупки и продажи цифровых товаров, игровых предметов и аккаунтов">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+  <style>
+    /* Основные переменные */
+    :root {
+      --primary: #6C5CE7;
+      --primary-dark: #5649C0;
+      --primary-light: rgba(108, 92, 231, 0.1);
+      --secondary: #00B894;
+      --accent: #FD79A8;
+      --dark: #2D3436;
+      --light: #F5F6FA;
+      --gray: #636E72;
+      --light-gray: #DFE6E9;
+      --success: #00B894;
+      --warning: #FDCB6E;
+      --danger: #D63031;
+      --card-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+      --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      --border-radius: 16px;
+      --sidebar-width: 280px;
+      --header-height: 70px;
+    }
+    
+    /* Общие стили */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    
+    body {
+      background-color: var(--light);
+      color: var(--dark);
+      line-height: 1.6;
+      transition: var(--transition);
+      padding-bottom: 80px;
+    }
+    
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+    
+    button, input, textarea {
+      font-family: inherit;
+      outline: none;
+      border: none;
+      background: none;
+    }
+    
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+    
+    /* Новый стиль хедера */
+    .main-header {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
+      padding: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: var(--header-height);
+    }
+    
+    .header-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .logo-img {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      object-fit: cover;
+      background: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 20px;
+      font-weight: 700;
+    }
+    
+    .logo-text {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--primary);
+      font-family: 'Montserrat', sans-serif;
+      letter-spacing: -0.5px;
+    }
+    
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    .header-icon {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      color: var(--gray);
+      transition: var(--transition);
+      position: relative;
+    }
+    
+    .header-icon.active, .header-icon:hover {
+      background: var(--primary-light);
+      color: var(--primary);
+    }
+    
+    .badge {
+      position: absolute;
+      top: -2px;
+      right: -2px;
+      width: 18px;
+      height: 18px;
+      background: var(--accent);
+      color: white;
+      border-radius: 50%;
+      font-size: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+    }
+    
+    /* Основной контент */
+    .main-content {
+      padding: 20px 0;
+    }
+    
+    /* Секции */
+    .section {
+      margin-bottom: 30px;
+    }
+    
+    .section-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'Montserrat', sans-serif;
+    }
+    
+    .section-title i {
+      color: var(--primary);
+    }
+    
+    /* Баннер с градиентом */
+    .hero-banner {
+      position: relative;
+      width: 100%;
+      height: 200px;
+      border-radius: var(--border-radius);
+      overflow: hidden;
+      margin-bottom: 25px;
+      display: flex;
+      align-items: center;
+      padding: 0 30px;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      box-shadow: 0 10px 30px rgba(108, 92, 231, 0.3);
+    }
+    
+    .banner-content {
+      position: relative;
+      z-index: 2;
+      color: white;
+      max-width: 60%;
+    }
+    
+    .banner-title {
+      font-size: 22px;
+      font-weight: 800;
+      margin-bottom: 10px;
+      font-family: 'Montserrat', sans-serif;
+    }
+    
+    .banner-text {
+      font-size: 14px;
+      margin-bottom: 15px;
+      opacity: 0.9;
+    }
+    
+    .banner-btn {
+      display: inline-flex;
+      align-items: center;
+      padding: 10px 20px;
+      background: white;
+      color: var(--primary);
+      border-radius: 50px;
+      font-weight: 600;
+      font-size: 14px;
+      transition: var(--transition);
+      gap: 8px;
+    }
+    
+    .banner-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .banner-img {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      height: 100%;
+      object-fit: contain;
+      object-position: right bottom;
+      opacity: 0.2;
+    }
+    
+    /* Категории с новым дизайном */
+    .categories {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      padding-bottom: 10px;
+      scrollbar-width: none;
+    }
+    
+    .categories::-webkit-scrollbar {
+      display: none;
+    }
+    
+    .category {
+      flex: 0 0 auto;
+      padding: 12px 20px;
+      background: white;
+      border-radius: 50px;
+      font-size: 14px;
+      font-weight: 600;
+      white-space: nowrap;
+      box-shadow: var(--card-shadow);
+      transition: var(--transition);
+      border: 1px solid var(--light-gray);
+    }
+    
+    .category.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+      box-shadow: 0 5px 15px rgba(108, 92, 231, 0.3);
+    }
+    
+    .category:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Улучшенные карточки товаров */
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+    }
+    
+    .product-card {
+      background: white;
+      border-radius: var(--border-radius);
+      overflow: hidden;
+      box-shadow: var(--card-shadow);
+      transition: var(--transition);
+      position: relative;
+      border: 1px solid rgba(0, 0, 0, 0.03);
+    }
+    
+    .product-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+    }
+    
+    .product-badge {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      padding: 4px 10px;
+      background: var(--accent);
+      color: white;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 4px;
+      z-index: 1;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    
+    .product-image {
+      width: 100%;
+      height: 140px;
+      background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .product-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.5s ease;
+    }
+    
+    .product-card:hover .product-image img {
+      transform: scale(1.05);
+    }
+    
+    .product-info {
+      padding: 15px;
+    }
+    
+    .product-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    
+    .product-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      font-size: 12px;
+      color: var(--gray);
+    }
+    
+    .product-rating {
+      color: var(--warning);
+      font-weight: 600;
+    }
+    
+    .product-sales {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .product-price {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 8px;
+    }
+    
+    .price {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--primary);
+      font-family: 'Montserrat', sans-serif;
+    }
+    
+    .old-price {
+      font-size: 13px;
+      color: var(--gray);
+      text-decoration: line-through;
+      margin-right: 5px;
+    }
+    
+    .add-to-cart {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      background: var(--primary);
+      color: white;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    
+    .add-to-cart:hover {
+      background: var(--primary-dark);
+      transform: scale(1.1);
+    }
+    
+    /* Нижняя панель с эффектом стекла */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.05);
+      z-index: 1000;
+      height: 80px;
+      display: flex;
+      padding: 0 15px;
+      border-top: 1px solid rgba(0, 0, 0, 0.03);
+    }
+    
+    .nav-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--gray);
+      font-size: 12px;
+      gap: 6px;
+      transition: var(--transition);
+      border-radius: 12px;
+      margin: 8px 5px;
+    }
+    
+    .nav-item i {
+      font-size: 20px;
+      transition: var(--transition);
+    }
+    
+    .nav-item.active {
+      color: var(--primary);
+      background: var(--primary-light);
+    }
+    
+    .nav-item.active i {
+      transform: translateY(-3px);
+    }
+    
+    /* Модальное окно поиска с эффектом стекла */
+    .search-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      z-index: 1100;
+      display: none;
+      align-items: flex-start;
+      padding-top: 90px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    .search-modal.active {
+      display: flex;
+      opacity: 1;
+    }
+    
+    .search-container {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 20px;
+      box-shadow: 0 5px 30px rgba(0, 0, 0, 0.1);
+    }
+    
+    .search-input {
+      width: 100%;
+      padding: 15px 20px;
+      border: 1px solid var(--light-gray);
+      border-radius: 50px;
+      font-size: 16px;
+      background: white;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+    }
+    
+    .search-input:focus {
+      border-color: var(--primary);
+    }
+    
+    /* Сайдбар с эффектом стекла */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: var(--sidebar-width);
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 2px 0 20px rgba(0, 0, 0, 0.05);
+      z-index: 1200;
+      transform: translateX(-100%);
+      transition: var(--transition);
+      border-right: 1px solid rgba(0, 0, 0, 0.03);
+    }
+    
+    .sidebar.active {
+      transform: translateX(0);
+    }
+    
+    .sidebar-header {
+      padding: 25px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      height: var(--header-height);
+    }
+    
+    .sidebar-nav {
+      padding: 20px;
+    }
+    
+    .nav-link {
+      display: flex;
+      align-items: center;
+      padding: 14px 18px;
+      border-radius: var(--border-radius);
+      color: var(--gray);
+      margin-bottom: 8px;
+      transition: var(--transition);
+    }
+    
+    .nav-link i {
+      width: 24px;
+      margin-right: 15px;
+      font-size: 18px;
+      transition: var(--transition);
+    }
+    
+    .nav-link.active, .nav-link:hover {
+      background: var(--primary-light);
+      color: var(--primary);
+      transform: translateX(5px);
+    }
+    
+    .nav-link.active i {
+      color: var(--primary);
+    }
+    
+    /* Оверлей */
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
+      z-index: 1100;
+      opacity: 0;
+      visibility: hidden;
+      transition: var(--transition);
+    }
+    
+    .overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+    
+    /* Анимации */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .fade-in {
+      animation: fadeIn 0.5s ease forwards;
+    }
+    
+    /* Адаптация для планшетов */
+    @media (min-width: 576px) {
+      .products-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+      
+      .hero-banner {
+        height: 240px;
+      }
+    }
+    
+    /* Адаптация для ПК */
+    @media (min-width: 992px) {
+      body {
+        padding-bottom: 0;
+        padding-left: var(--sidebar-width);
+      }
+      
+      .bottom-nav {
+        display: none;
+      }
+      
+      .products-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+      
+      .hero-banner {
+        height: 300px;
+      }
+      
+      .main-header {
+        display: none;
+      }
+      
+      .sidebar {
+        transform: translateX(0);
+      }
+      
+      .main-content {
+        margin-left: 0;
+      }
+      
+      .banner-img {
+        opacity: 0.4;
+      }
+    }
+    
+    /* Адаптация для больших экранов */
+    @media (min-width: 1200px) {
+      .products-grid {
+        grid-template-columns: repeat(5, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Модернизированный хедер -->
+  <header class="main-header">
+    <div class="header-logo">
+      <div class="logo-img">GP</div>
+      <span class="logo-text">GlovimPay</span>
+    </div>
+    
+    <div class="header-actions">
+      <button class="header-icon" id="searchBtn">
+        <i class="fas fa-search"></i>
+      </button>
+      <button class="header-icon" id="cartBtn">
+        <i class="fas fa-shopping-cart"></i>
+        <span class="badge">3</span>
+      </button>
+      <button class="header-icon" id="menuBtn">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+  </header>
+  
+  <!-- Сайдбар с эффектом стекла -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="header-logo">
+        <div class="logo-img">GP</div>
+        <span class="logo-text">GlovimPay</span>
+      </div>
+    </div>
+    
+    <nav class="sidebar-nav">
+      <a href="/" class="nav-link active">
+        <i class="fas fa-home"></i>
+        <span>Главная</span>
+      </a>
+      <a href="/shop" class="nav-link">
+        <i class="fas fa-store"></i>
+        <span>Магазин</span>
+      </a>
+      <a href="/categories" class="nav-link">
+        <i class="fas fa-th-large"></i>
+        <span>Категории</span>
+      </a>
+      <a href="/favorites" class="nav-link">
+        <i class="fas fa-heart"></i>
+        <span>Избранное</span>
+      </a>
+      <a href="/orders" class="nav-link">
+        <i class="fas fa-shopping-bag"></i>
+        <span>Мои заказы</span>
+      </a>
+      <a href="/chat" class="nav-link">
+        <i class="fas fa-comment-alt"></i>
+        <span>Чат</span>
+        <span class="badge" style="position: static; margin-left: auto;">5</span>
+      </a>
+      <div style="margin-top: 30px;">
+        <a href="/profile" class="nav-link">
+          <i class="fas fa-user"></i>
+          <span>Профиль</span>
+        </a>
+        <a href="/settings" class="nav-link">
+          <i class="fas fa-cog"></i>
+          <span>Настройки</span>
+        </a>
+      </div>
+    </nav>
+  </aside>
+  
+  <!-- Оверлей -->
+  <div class="overlay" id="overlay"></div>
+  
+  <!-- Основной контент -->
+  <main class="main-content">
+    <div class="container">
+      <!-- Баннер с градиентом -->
+      <section class="section fade-in">
+        <div class="hero-banner">
+          <div class="banner-content">
+            <h2 class="banner-title">Игровые ценности</h2>
+            <p class="banner-text">Покупайте и продавайте безопасно с гарантией GlovimPay</p>
+            <a href="#" class="banner-btn">
+              <span>Начать покупки</span>
+              <i class="fas fa-arrow-right"></i>
+            </a>
+          </div>
+          <img src="images/photo_2025-02-22_08-29-19.jpg" alt="Баннер" class="banner-img">
+        </div>
+      </section>
+      
+      <!-- Категории -->
+      <section class="section fade-in" style="animation-delay: 0.1s;">
+        <h2 class="section-title">
+          <i class="fas fa-tags"></i>
+          <span>Категории</span>
+        </h2>
+        <div class="categories">
+          <a href="#" class="category active">Все</a>
+          <a href="#" class="category">Аккаунты</a>
+          <a href="#" class="category">Донат</a>
+          <a href="#" class="category">Скины</a>
+          <a href="#" class="category">Валюта</a>
+          <a href="#" class="category">Подписки</a>
+          <a href="#" class="category">Услуги</a>
+          <a href="#" class="category">Ключи</a>
+        </div>
+      </section>
+      
+      <!-- Популярные товары -->
+      <section class="section fade-in" style="animation-delay: 0.2s;">
+        <h2 class="section-title">
+          <i class="fas fa-fire"></i>
+          <span>Популярные товары</span>
+        </h2>
+        <div class="products-grid" id="productsGrid">
+          <!-- Товары будут загружены через JavaScript -->
+        </div>
+      </section>
+      
+      <!-- Новые поступления -->
+      <section class="section fade-in" style="animation-delay: 0.3s;">
+        <h2 class="section-title">
+          <i class="fas fa-bolt"></i>
+          <span>Новые поступления</span>
+        </h2>
+        <div class="products-grid" id="newProductsGrid">
+          <!-- Товары будут загружены через JavaScript -->
+        </div>
+      </section>
+    </div>
+  </main>
+  
+  <!-- Нижняя панель навигации с эффектом стекла -->
+  <nav class="bottom-nav">
+    <a href="/" class="nav-item active">
+      <i class="fas fa-home"></i>
+      <span>Главная</span>
+    </a>
+    <a href="/shop" class="nav-item">
+      <i class="fas fa-store"></i>
+      <span>Магазин</span>
+    </a>
+    <a href="/cart" class="nav-item">
+      <i class="fas fa-shopping-cart"></i>
+      <span>Корзина</span>
+    </a>
+    <a href="/chat" class="nav-item">
+      <i class="fas fa-comment-alt"></i>
+      <span>Чат</span>
+    </a>
+    <a href="/profile" class="nav-item">
+      <i class="fas fa-user"></i>
+      <span>Профиль</span>
+    </a>
+  </nav>
+  
+  <!-- Модальное окно поиска -->
+  <div class="search-modal" id="searchModal">
+    <div class="search-container">
+      <input type="text" class="search-input" placeholder="Поиск товаров, категорий..." id="searchInput" autofocus>
+    </div>
+  </div>
+  
+  <script>
+    // Инициализация Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyAhn2H2BExFFf7GO2k_YDfrwPiV_cYdUBg",
+      authDomain: "glovimplaye-b1023.firebaseapp.com",
+      databaseURL: "https://glovimplaye-b1023-default-rtdb.firebaseio.com",
+      projectId: "glovimplaye-b1023",
+      storageBucket: "glovimplaye-b1023.appspot.com",
+      messagingSenderId: "553440591519",
+      appId: "1:553440591519:web:b7be45a9253689f322acaa"
+    };
+    
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    
+    // DOM элементы
+    const searchBtn = document.getElementById('searchBtn');
+    const searchModal = document.getElementById('searchModal');
+    const menuBtn = document.getElementById('menuBtn');
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.getElementById('overlay');
+    const productsGrid = document.getElementById('productsGrid');
+    const newProductsGrid = document.getElementById('newProductsGrid');
+    const searchInput = document.getElementById('searchInput');
+    const cartBtn = document.getElementById('cartBtn');
+    
+    // Открытие/закрытие поиска
+    searchBtn.addEventListener('click', () => {
+      searchModal.classList.add('active');
+      setTimeout(() => searchInput.focus(), 300);
+    });
+    
+    searchModal.addEventListener('click', (e) => {
+      if (e.target === searchModal) {
+        searchModal.classList.remove('active');
+      }
+    });
+    
+    // Открытие/закрытие сайдбара
+    menuBtn.addEventListener('click', () => {
+      sidebar.classList.add('active');
+      overlay.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    });
+    
+    overlay.addEventListener('click', () => {
+      sidebar.classList.remove('active');
+      overlay.classList.remove('active');
+      document.body.style.overflow = '';
+    });
+    
+    // Закрытие поиска при нажатии Esc
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        searchModal.classList.remove('active');
+      }
+    });
+    
+    // Загрузка популярных товаров
+    function loadPopularProducts() {
+      const productsRef = firebase.database().ref('products')
+        .orderByChild('sales')
+        .limitToLast(8);
+      
+      productsRef.on('value', (snapshot) => {
+        productsGrid.innerHTML = '';
+        
+        snapshot.forEach((childSnapshot) => {
+          const product = childSnapshot.val();
+          renderProduct(product, childSnapshot.key, productsGrid);
+        });
+      });
+    }
+    
+    // Загрузка новых товаров
+    function loadNewProducts() {
+      const productsRef = firebase.database().ref('products')
+        .orderByChild('dateAdded')
+        .limitToLast(8);
+      
+      productsRef.on('value', (snapshot) => {
+        newProductsGrid.innerHTML = '';
+        
+        snapshot.forEach((childSnapshot) => {
+          const product = childSnapshot.val();
+          renderProduct(product, childSnapshot.key, newProductsGrid);
+        });
+      });
+    }
+    
+    // Рендер товара с улучшенным дизайном
+    function renderProduct(product, id, container) {
+      const productCard = document.createElement('div');
+      productCard.className = 'product-card fade-in';
+      productCard.innerHTML = `
+        ${product.discount ? `<span class="product-badge">-${product.discount}%</span>` : ''}
+        <div class="product-image">
+          <img src="${product.image || 'images/no-image.png'}" alt="${product.name}" loading="lazy">
+        </div>
+        <div class="product-info">
+          <h3 class="product-title">${product.name}</h3>
+          <div class="product-meta">
+            ${product.rating ? `<span class="product-rating"><i class="fas fa-star"></i> ${product.rating}</span>` : ''}
+            ${product.sales ? `<span class="product-sales"><i class="fas fa-chart-line"></i> ${product.sales}</span>` : ''}
+          </div>
+          <div class="product-price">
+            ${product.oldPrice ? `<span class="old-price">${product.oldPrice} ₽</span>` : ''}
+            <span class="price">${product.price} ₽</span>
+            <button class="add-to-cart">
+              <i class="fas fa-shopping-cart"></i>
+            </button>
+          </div>
+        </div>
+      `;
+      
+      productCard.addEventListener('click', (e) => {
+        // Не переходить на страницу товара, если кликнули на кнопку корзины
+        if (!e.target.closest('.add-to-cart')) {
+          window.location.href = `/product.html?id=${id}`;
+        }
+      });
+      
+      // Обработчик добавления в корзину
+      const addToCartBtn = productCard.querySelector('.add-to-cart');
+      addToCartBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        addToCartBtn.innerHTML = '<i class="fas fa-check"></i>';
+        addToCartBtn.style.background = 'var(--success)';
+        setTimeout(() => {
+          addToCartBtn.innerHTML = '<i class="fas fa-shopping-cart"></i>';
+          addToCartBtn.style.background = 'var(--primary)';
+        }, 1000);
+        
+        // Здесь можно добавить логику добавления в корзину
+        console.log(`Товар ${id} добавлен в корзину`);
+      });
+      
+      container.appendChild(productCard);
+    }
+    
+    // Поиск товаров
+    function searchProducts(query) {
+      const productsRef = firebase.database().ref('products');
+      
+      productsRef.once('value').then((snapshot) => {
+        productsGrid.innerHTML = '';
+        newProductsGrid.innerHTML = '';
+        const searchTerm = query.toLowerCase();
+        
+        snapshot.forEach((childSnapshot) => {
+          const product = childSnapshot.val();
+          if (product.name.toLowerCase().includes(searchTerm) || 
+              product.category.toLowerCase().includes(searchTerm)) {
+            renderProduct(product, childSnapshot.key, productsGrid);
+          }
+        });
+      });
+    }
+    
+    // Обработчик поиска
+    searchInput.addEventListener('input', (e) => {
+      if (e.target.value.length > 2) {
+        searchProducts(e.target.value);
+      } else if (e.target.value.length === 0) {
+        loadPopularProducts();
+        loadNewProducts();
+      }
+    });
+    
+    // Инициализация при загрузке
+    document.addEventListener('DOMContentLoaded', () => {
+      loadPopularProducts();
+      loadNewProducts();
+      
+      // Анимация появления элементов
+      const sections = document.querySelectorAll('.fade-in');
+      sections.forEach((section, index) => {
+        section.style.animationDelay = `${index * 0.1}s`;
+      });
+    });
+  </script>
+</body>
+</html>

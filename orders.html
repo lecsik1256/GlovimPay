@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Мои товары | GlovimPay</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <!-- Firebase v8 -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* Основные переменные */
+    :root {
+      --primary: #6C5CE7;
+      --primary-dark: #5649C0;
+      --secondary: #00B894;
+      --accent: #FD79A8;
+      --dark: #2D3436;
+      --light: #F5F6FA;
+      --gray: #636E72;
+      --light-gray: #DFE6E9;
+      --success: #00B894;
+      --warning: #FDCB6E;
+      --danger: #D63031;
+      --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      --border-radius: 12px;
+      --sidebar-width: 280px;
+    }
+    
+    /* Общие стили */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+    
+    body {
+      background-color: var(--light);
+      color: var(--dark);
+      line-height: 1.6;
+    }
+    
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+    
+    button, input, textarea {
+      font-family: inherit;
+      outline: none;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    /* Хедер */
+    header {
+      background: white;
+      padding: 15px 30px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: var(--card-shadow);
+      margin-bottom: 30px;
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--primary);
+      cursor: pointer;
+    }
+    
+    .logo-img {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      object-fit: cover;
+    }
+    
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    
+    .theme-toggle {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: var(--light);
+      color: var(--gray);
+      border: none;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    
+    .theme-toggle:hover {
+      background: rgba(108, 92, 231, 0.1);
+      color: var(--primary);
+    }
+    
+    /* Основной контент */
+    .main-content {
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--card-shadow);
+      padding: 30px;
+      margin-bottom: 30px;
+    }
+    
+    .section-title {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      color: var(--dark);
+      position: relative;
+      padding-left: 15px;
+    }
+    
+    .section-title::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 5px;
+      bottom: 5px;
+      width: 4px;
+      background: var(--primary);
+      border-radius: 2px;
+    }
+    
+    /* Табы */
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid var(--light-gray);
+      margin-bottom: 25px;
+    }
+    
+    .tab {
+      padding: 12px 20px;
+      cursor: pointer;
+      font-weight: 500;
+      color: var(--gray);
+      position: relative;
+      transition: var(--transition);
+    }
+    
+    .tab.active {
+      color: var(--primary);
+    }
+    
+    .tab.active::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--primary);
+    }
+    
+    .tab:hover {
+      color: var(--primary);
+    }
+    
+    /* Таблица товаров */
+    .products-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    .products-table th {
+      text-align: left;
+      padding: 12px 15px;
+      font-weight: 500;
+      color: var(--gray);
+      border-bottom: 1px solid var(--light-gray);
+    }
+    
+    .products-table td {
+      padding: 15px;
+      border-bottom: 1px solid var(--light-gray);
+      vertical-align: middle;
+    }
+    
+    .product-info {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    .product-image {
+      width: 50px;
+      height: 50px;
+      border-radius: var(--border-radius);
+      object-fit: cover;
+    }
+    
+    .product-name {
+      font-weight: 500;
+    }
+    
+    .product-category {
+      font-size: 13px;
+      color: var(--gray);
+      margin-top: 3px;
+    }
+    
+    .price {
+      font-weight: 600;
+      color: var(--primary);
+    }
+    
+    .status {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    
+    .status.completed {
+      background: rgba(0, 184, 148, 0.1);
+      color: var(--success);
+    }
+    
+    .status.pending {
+      background: rgba(253, 203, 110, 0.1);
+      color: var(--warning);
+    }
+    
+    .status.canceled {
+      background: rgba(214, 48, 49, 0.1);
+      color: var(--danger);
+    }
+    
+    .action-btn {
+      padding: 8px 15px;
+      border-radius: var(--border-radius);
+      border: none;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    
+    .action-btn.primary {
+      background: var(--primary);
+      color: white;
+    }
+    
+    .action-btn.primary:hover {
+      background: var(--primary-dark);
+    }
+    
+    .action-btn.secondary {
+      background: var(--light);
+      color: var(--dark);
+    }
+    
+    .action-btn.secondary:hover {
+      background: var(--light-gray);
+    }
+    
+    /* Пустое состояние */
+    .empty-state {
+      text-align: center;
+      padding: 50px 20px;
+    }
+    
+    .empty-state i {
+      font-size: 50px;
+      color: var(--light-gray);
+      margin-bottom: 20px;
+    }
+    
+    .empty-state p {
+      color: var(--gray);
+      margin-bottom: 20px;
+    }
+    
+    .btn {
+      padding: 12px 25px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: var(--border-radius);
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    
+    .btn:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+    
+    /* Футер */
+    footer {
+      background: white;
+      text-align: center;
+      padding: 20px;
+      color: var(--gray);
+      font-size: 14px;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+    }
+    
+    /* Адаптация для мобильных устройств */
+    @media (max-width: 768px) {
+      .container {
+        padding: 15px;
+      }
+      
+      .main-content {
+        padding: 20px;
+      }
+      
+      .products-table {
+        display: block;
+        overflow-x: auto;
+      }
+      
+      .tabs {
+        overflow-x: auto;
+        white-space: nowrap;
+        padding-bottom: 5px;
+      }
+    }
+    
+    /* Темная тема */
+    body.dark-mode {
+      background: #121212;
+      color: #e0e0e0;
+    }
+    
+    body.dark-mode header,
+    body.dark-mode .main-content,
+    body.dark-mode footer {
+      background: #1E1E1E;
+    }
+    
+    body.dark-mode .section-title {
+      color: #e0e0e0;
+    }
+    
+    body.dark-mode .tab {
+      color: #b0b0b0;
+    }
+    
+    body.dark-mode .tab.active,
+    body.dark-mode .tab:hover {
+      color: var(--primary);
+    }
+    
+    body.dark-mode .products-table th,
+    body.dark-mode .products-table td {
+      border-color: #3D3D3D;
+    }
+    
+    body.dark-mode .product-category {
+      color: #b0b0b0;
+    }
+    
+    body.dark-mode .action-btn.secondary {
+      background: #2D2D2D;
+      color: #e0e0e0;
+    }
+    
+    body.dark-mode .empty-state i {
+      color: #3D3D3D;
+    }
+    
+    body.dark-mode .empty-state p {
+      color: #b0b0b0;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo" onclick="window.location.href='index.html'">
+      <img src="images/logo (2).png" alt="GlovimPay" class="logo-img">
+      <span>GlovimPay</span>
+    </div>
+    <div class="header-actions">
+      <button class="theme-toggle" id="themeToggle">
+        <i class="fas fa-sun" id="themeIcon"></i>
+      </button>
+    </div>
+  </header>
+  
+  <div class="container">
+    <div class="main-content">
+      <h1 class="section-title">Мои товары</h1>
+      
+      <div class="tabs">
+        <div class="tab active" onclick="switchTab('purchases')">Мои покупки</div>
+        <div class="tab" onclick="switchTab('sales')">Мои продажи</div>
+      </div>
+      
+      <!-- Контент для покупок -->
+      <div id="purchasesContent" class="tab-content">
+        <table class="products-table">
+          <thead>
+            <tr>
+              <th>Товар</th>
+              <th>Цена</th>
+              <th>Дата</th>
+              <th>Статус</th>
+              <th>Действия</th>
+            </tr>
+          </thead>
+          <tbody id="purchasesList">
+            <!-- Сюда будут загружаться покупки -->
+          </tbody>
+        </table>
+        
+        <div id="emptyPurchases" class="empty-state" style="display: none;">
+          <i class="fas fa-shopping-bag"></i>
+          <p>У вас пока нет покупок</p>
+          <button class="btn" onclick="window.location.href='shop.html'">Перейти в магазин</button>
+        </div>
+      </div>
+      
+      <!-- Контент для продаж -->
+      <div id="salesContent" class="tab-content" style="display: none;">
+        <table class="products-table">
+          <thead>
+            <tr>
+              <th>Товар</th>
+              <th>Цена</th>
+              <th>Дата</th>
+              <th>Статус</th>
+              <th>Действия</th>
+            </tr>
+          </thead>
+          <tbody id="salesList">
+            <!-- Сюда будут загружаться продажи -->
+          </tbody>
+        </table>
+        
+        <div id="emptySales" class="empty-state" style="display: none;">
+          <i class="fas fa-store"></i>
+          <p>У вас пока нет продаж</p>
+          <button class="btn" onclick="window.location.href='add.html'">Добавить товар</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <script>
+    // Firebase конфигурация
+    var firebaseConfig = {
+      apiKey: "AIzaSyAhn2H2BExFFf7GO2k_YDfrwPiV_cYdUBg",
+      authDomain: "glovimplaye-b1023.firebaseapp.com",
+      databaseURL: "https://glovimplaye-b1023-default-rtdb.firebaseio.com",
+      projectId: "glovimplaye-b1023",
+      storageBucket: "glovimplaye-b1023.firebasestorage.app",
+      messagingSenderId: "553440591519",
+      appId: "1:553440591519:web:b7be45a9253689f322acaa"
+    };
+    
+    // Инициализация Firebase
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    
+    // Переключение темы
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+    
+    function applyTheme(theme) {
+      if (theme === 'dark') {
+        document.body.classList.add('dark-mode');
+        themeIcon.className = "fas fa-moon";
+        localStorage.setItem('theme', 'dark');
+      } else {
+        document.body.classList.remove('dark-mode');
+        themeIcon.className = "fas fa-sun";
+        localStorage.setItem('theme', 'light');
+      }
+    }
+    
+    themeToggle.addEventListener('click', () => {
+      const currentTheme = localStorage.getItem('theme') || 'light';
+      applyTheme(currentTheme === 'light' ? 'dark' : 'light');
+    });
+    
+    // Применяем сохраненную тему при загрузке
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    applyTheme(savedTheme);
+    
+    // Текущий пользователь
+    let currentUser = null;
+    
+    // Загрузка данных при загрузке страницы
+    firebase.auth().onAuthStateChanged(user => {
+      if (user) {
+        currentUser = user;
+        loadPurchases();
+      } else {
+        window.location.href = 'login.html';
+      }
+    });
+    
+    // Переключение табов
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.style.display = 'none';
+      });
+      
+      if (tabName === 'purchases') {
+        document.querySelector('.tab:nth-child(1)').classList.add('active');
+        document.getElementById('purchasesContent').style.display = 'block';
+        loadPurchases();
+      } else {
+        document.querySelector('.tab:nth-child(2)').classList.add('active');
+        document.getElementById('salesContent').style.display = 'block';
+        loadSales();
+      }
+    }
+    
+    // Загрузка покупок
+    function loadPurchases() {
+      if (!currentUser) return;
+      
+      const purchasesRef = firebase.database().ref('purchases')
+        .orderByChild('buyerId')
+        .equalTo(currentUser.uid);
+      
+      purchasesRef.on('value', snapshot => {
+        const purchasesList = document.getElementById('purchasesList');
+        purchasesList.innerHTML = '';
+        
+        const emptyState = document.getElementById('emptyPurchases');
+        
+        if (!snapshot.exists()) {
+          emptyState.style.display = 'block';
+          return;
+        }
+        
+        emptyState.style.display = 'none';
+        
+        snapshot.forEach(childSnapshot => {
+          const purchase = childSnapshot.val();
+          purchase.id = childSnapshot.key;
+          renderPurchase(purchase);
+        });
+      });
+    }
+    
+    // Загрузка продаж
+    function loadSales() {
+      if (!currentUser) return;
+      
+      const salesRef = firebase.database().ref('sales')
+        .orderByChild('sellerId')
+        .equalTo(currentUser.uid);
+      
+      salesRef.on('value', snapshot => {
+        const salesList = document.getElementById('salesList');
+        salesList.innerHTML = '';
+        
+        const emptyState = document.getElementById('emptySales');
+        
+        if (!snapshot.exists()) {
+          emptyState.style.display = 'block';
+          return;
+        }
+        
+        emptyState.style.display = 'none';
+        
+        snapshot.forEach(childSnapshot => {
+          const sale = childSnapshot.val();
+          sale.id = childSnapshot.key;
+          renderSale(sale);
+        });
+      });
+    }
+    
+    // Отображение покупки
+       // Отображение покупки
+       function renderPurchase(purchase) {
+        const purchasesList = document.getElementById('purchasesList');
+        const row = document.createElement('tr');
+        
+        // Форматирование даты
+        const purchaseDate = new Date(purchase.date);
+        const formattedDate = purchaseDate.toLocaleDateString('ru-RU', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric'
+        });
+        
+        // Определение статуса
+        let statusClass = '';
+        let statusText = '';
+        switch(purchase.status) {
+          case 'completed':
+            statusClass = 'completed';
+            statusText = 'Завершено';
+            break;
+          case 'pending':
+            statusClass = 'pending';
+            statusText = 'В обработке';
+            break;
+          case 'canceled':
+            statusClass = 'canceled';
+            statusText = 'Отменено';
+            break;
+          default:
+            statusClass = 'pending';
+            statusText = 'В обработке';
+        }
+        
+        row.innerHTML = `
+          <td>
+            <div class="product-info">
+              <img src="${purchase.productImage || 'images/default-product.png'}" alt="${purchase.productName}" class="product-image">
+              <div>
+                <div class="product-name">${purchase.productName}</div>
+                <div class="product-category">${purchase.productCategory || 'Без категории'}</div>
+              </div>
+            </div>
+          </td>
+          <td class="price">${purchase.price} ₽</td>
+          <td>${formattedDate}</td>
+          <td><span class="status ${statusClass}">${statusText}</span></td>
+          <td>
+            <button class="action-btn primary" onclick="viewPurchaseDetails('${purchase.id}')">
+              <i class="fas fa-eye"></i> Подробнее
+            </button>
+          </td>
+        `;
+        
+        purchasesList.appendChild(row);
+      }
+      
+      // Отображение продажи
+      function renderSale(sale) {
+        const salesList = document.getElementById('salesList');
+        const row = document.createElement('tr');
+        
+        // Форматирование даты
+        const saleDate = new Date(sale.date);
+        const formattedDate = saleDate.toLocaleDateString('ru-RU', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric'
+        });
+        
+        // Определение статуса
+        let statusClass = '';
+        let statusText = '';
+        switch(sale.status) {
+          case 'completed':
+            statusClass = 'completed';
+            statusText = 'Завершено';
+            break;
+          case 'pending':
+            statusClass = 'pending';
+            statusText = 'В обработке';
+            break;
+          case 'canceled':
+            statusClass = 'canceled';
+            statusText = 'Отменено';
+            break;
+          default:
+            statusClass = 'pending';
+            statusText = 'В обработке';
+        }
+        
+        row.innerHTML = `
+          <td>
+            <div class="product-info">
+              <img src="${sale.productImage || 'images/default-product.png'}" alt="${sale.productName}" class="product-image">
+              <div>
+                <div class="product-name">${sale.productName}</div>
+                <div class="product-category">${sale.productCategory || 'Без категории'}</div>
+              </div>
+            </div>
+          </td>
+          <td class="price">${sale.price} ₽</td>
+          <td>${formattedDate}</td>
+          <td><span class="status ${statusClass}">${statusText}</span></td>
+          <td>
+            <button class="action-btn primary" onclick="viewSaleDetails('${sale.id}')">
+              <i class="fas fa-eye"></i> Подробнее
+            </button>
+            ${sale.status === 'pending' ? `
+            <button class="action-btn secondary" onclick="cancelSale('${sale.id}')" style="margin-left: 5px;">
+              <i class="fas fa-times"></i> Отменить
+            </button>
+            ` : ''}
+          </td>
+        `;
+        
+        salesList.appendChild(row);
+      }
+      
+      // Просмотр деталей покупки
+      function viewPurchaseDetails(purchaseId) {
+        // Здесь можно реализовать модальное окно с деталями покупки
+        alert(`Просмотр деталей покупки #${purchaseId}`);
+        // Или перенаправить на отдельную страницу
+        // window.location.href = `purchase-details.html?id=${purchaseId}`;
+      }
+      
+      // Просмотр деталей продажи
+      function viewSaleDetails(saleId) {
+        // Здесь можно реализовать модальное окно с деталями продажи
+        alert(`Просмотр деталей продажи #${saleId}`);
+        // Или перенаправить на отдельную страницу
+        // window.location.href = `sale-details.html?id=${saleId}`;
+      }
+      
+      // Отмена продажи
+      function cancelSale(saleId) {
+        if (confirm('Вы уверены, что хотите отменить эту продажу?')) {
+          firebase.database().ref('sales/' + saleId).update({
+            status: 'canceled',
+            canceledAt: firebase.database.ServerValue.TIMESTAMP
+          })
+          .then(() => {
+            alert('Продажа успешно отменена');
+            loadSales(); // Обновляем список продаж
+          })
+          .catch(error => {
+            console.error('Ошибка при отмене продажи:', error);
+            alert('Не удалось отменить продажу: ' + error.message);
+          });
+        }
+      }
+      
+      // Инициализация при загрузке страницы
+      document.addEventListener('DOMContentLoaded', () => {
+        // Проверяем авторизацию пользователя
+        firebase.auth().onAuthStateChanged(user => {
+          if (user) {
+            currentUser = user;
+            loadPurchases(); // По умолчанию загружаем покупки
+          } else {
+            window.location.href = 'login.html?redirect=my-products.html';
+          }
+        });
+      });
+    </script>
+  </body>
+  </html>

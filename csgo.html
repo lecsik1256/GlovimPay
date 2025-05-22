@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>CS:GO — Подкатегории | GlovimPlaye</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="GlovimPlaye - безопасная площадка для покупки и продажи цифровых товаров, игровых предметов и аккаунтов">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+  <style>
+    /* Основные переменные как на главной */
+    :root {
+      --primary: #6C5CE7;
+      --primary-dark: #5649C0;
+      --secondary: #00B894;
+      --accent: #FD79A8;
+      --dark: #2D3436;
+      --light: #F5F6FA;
+      --gray: #636E72;
+      --light-gray: #DFE6E9;
+      --success: #00B894;
+      --warning: #FDCB6E;
+      --danger: #D63031;
+      --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      --border-radius: 12px;
+    }
+    
+    /* Общие стили как на главной */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+    
+    body {
+      background-color: var(--light);
+      color: var(--dark);
+      line-height: 1.6;
+      padding-bottom: 70px;
+      transition: var(--transition);
+    }
+    
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+    
+    /* Хедер как на главной */
+    .main-header {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3);
+    }
+    
+    .logo {
+      font-size: 22px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: white;
+    }
+    
+    .logo img {
+      width: 30px;
+      height: 30px;
+      border-radius: 6px;
+    }
+    
+    .header-actions {
+      display: flex;
+      gap: 15px;
+    }
+    
+    .header-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    
+    .header-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: scale(1.1);
+    }
+    
+    /* Контент как на главной */
+    .container {
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 20px;
+    }
+    
+    /* Заголовок категории */
+    .category-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+      background: white;
+      padding: 15px;
+      border-radius: var(--border-radius);
+      box-shadow: var(--card-shadow);
+    }
+    
+    .category-header img {
+      width: 60px;
+      height: 60px;
+      border-radius: var(--border-radius);
+      margin-right: 20px;
+      object-fit: cover;
+    }
+    
+    .category-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    
+    /* Подкатегории */
+    .subcategories {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+    
+    .subcategory-card {
+      background: white;
+      border-radius: var(--border-radius);
+      padding: 15px;
+      text-align: center;
+      box-shadow: var(--card-shadow);
+      transition: var(--transition);
+      cursor: pointer;
+    }
+    
+    .subcategory-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 15px rgba(108, 92, 231, 0.2);
+    }
+    
+    /* Таблица товаров */
+    .product-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: var(--border-radius);
+      overflow: hidden;
+      box-shadow: var(--card-shadow);
+      margin-bottom: 20px;
+    }
+    
+    .product-table th {
+      background: var(--primary);
+      color: white;
+      padding: 12px 15px;
+      text-align: left;
+    }
+    
+    .product-table td {
+      padding: 12px 15px;
+      border-bottom: 1px solid var(--light-gray);
+    }
+    
+    .product-table tr:last-child td {
+      border-bottom: none;
+    }
+    
+    .product-table tr:hover {
+      background: rgba(108, 92, 231, 0.05);
+    }
+    
+    .product-name {
+      color: var(--primary);
+      font-weight: 600;
+      transition: var(--transition);
+    }
+    
+    .product-name:hover {
+      color: var(--primary-dark);
+    }
+    
+    .seller-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .seller-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--light-gray);
+    }
+    
+    .price {
+      font-weight: 700;
+      color: var(--primary);
+    }
+    
+    /* Мобильная навигация как на главной */
+    .mobile-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+      z-index: 100;
+      display: none;
+    }
+    
+    .mobile-nav-container {
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+    }
+    
+    .mobile-nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: var(--gray);
+      font-size: 12px;
+      gap: 5px;
+      padding: 5px 10px;
+      border-radius: 8px;
+      transition: var(--transition);
+    }
+    
+    .mobile-nav-item i {
+      font-size: 20px;
+    }
+    
+    .mobile-nav-item.active, .mobile-nav-item:hover {
+      color: var(--primary);
+      background: rgba(108, 92, 231, 0.1);
+    }
+    
+    /* Футер как на главной */
+    .footer {
+      background: var(--dark);
+      color: white;
+      padding: 30px 20px;
+      text-align: center;
+      border-radius: var(--border-radius);
+      margin: 20px;
+    }
+    
+    .footer-btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: var(--transition);
+      font-weight: 600;
+    }
+    
+    .footer-btn:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+    
+    .social-links {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin: 15px 0;
+    }
+    
+    .social-links a {
+      color: white;
+      font-size: 24px;
+      transition: var(--transition);
+    }
+    
+    .social-links a:hover {
+      color: var(--accent);
+      transform: translateY(-3px);
+    }
+    
+    .copyright {
+      font-size: 14px;
+      color: var(--light-gray);
+    }
+    
+    /* Адаптивность */
+    @media (max-width: 768px) {
+      .main-header {
+        padding: 12px 15px;
+      }
+      
+      .logo {
+        font-size: 20px;
+      }
+      
+      .category-header {
+        flex-direction: column;
+        text-align: center;
+      }
+      
+      .category-header img {
+        margin-right: 0;
+        margin-bottom: 10px;
+      }
+      
+      .subcategories {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      .product-table {
+        display: block;
+        overflow-x: auto;
+      }
+      
+      .mobile-nav {
+        display: block;
+      }
+    }
+    
+    /* Темная тема как на главной */
+    body.dark-mode {
+      background: #121212;
+      color: #e0e0e0;
+    }
+    
+    body.dark-mode .category-header,
+    body.dark-mode .subcategory-card,
+    body.dark-mode .product-table,
+    body.dark-mode .product-table th,
+    body.dark-mode .product-table td {
+      background: #1E1E1E;
+      color: #e0e0e0;
+    }
+    
+    body.dark-mode .product-table td {
+      border-color: #3D3D3D;
+    }
+    
+    body.dark-mode .product-name {
+      color: var(--accent);
+    }
+    
+    body.dark-mode .mobile-nav {
+      background: #1E1E1E;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+    }
+    
+    body.dark-mode .mobile-nav-item {
+      color: #b0b0b0;
+    }
+    
+    body.dark-mode .mobile-nav-item.active,
+    body.dark-mode .mobile-nav-item:hover {
+      color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+  <!-- Хедер как на главной -->
+  <header class="main-header">
+    <a href="index.html" class="logo">
+      <img src="images/logo (2).png " alt="GlovimPlaye">
+      <span>GlovimPlaye</span>
+    </a>
+    <div class="header-actions">
+      <button class="header-btn" id="themeToggle">
+        <i class="fas fa-moon" id="themeIcon"></i>
+      </button>
+      <button class="header-btn" id="notificationsBtn">
+        <i class="fas fa-bell"></i>
+      </button>
+      <button class="header-btn" id="profileBtn">
+        <i class="fas fa-user"></i>
+      </button>
+    </div>
+  </header>
+  
+  <!-- Основной контент -->
+  <div class="container">
+    <!-- Заголовок категории -->
+    <div class="category-header">
+      <img src="images/csgo.jpg" alt="CS:GO">
+      <div>
+        <h1 class="category-title">CS:GO</h1>
+        <p>Товары и услуги для Counter-Strike: Global Offensive</p>
+      </div>
+    </div>
+    
+    <!-- Подкатегории -->
+    <h3 class="section-title">Подкатегории</h3>
+    <div class="subcategories">
+      <div class="subcategory-card" onclick="loadProducts('accounts')">
+        <i class="fas fa-user" style="font-size: 24px; margin-bottom: 8px; color: var(--primary);"></i>
+        <div>Аккаунты</div>
+      </div>
+      <div class="subcategory-card" onclick="loadProducts('skins')">
+        <i class="fas fa-paint-brush" style="font-size: 24px; margin-bottom: 8px; color: var(--primary);"></i>
+        <div>Скины</div>
+      </div>
+      <div class="subcategory-card" onclick="loadProducts('donate')">
+        <i class="fas fa-coins" style="font-size: 24px; margin-bottom: 8px; color: var(--primary);"></i>
+        <div>Донат</div>
+      </div>
+      <div class="subcategory-card" onclick="loadProducts('services')">
+        <i class="fas fa-concierge-bell" style="font-size: 24px; margin-bottom: 8px; color: var(--primary);"></i>
+        <div>Услуги</div>
+      </div>
+      <div class="subcategory-card" onclick="loadProducts('items')">
+        <i class="fas fa-box-open" style="font-size: 24px; margin-bottom: 8px; color: var(--primary);"></i>
+        <div>Товары</div>
+      </div>
+      <div class="subcategory-card" onclick="loadProducts('prime status')">
+        <i class="fas fa-star" style="font-size: 24px; margin-bottom: 8px; color: var(--primary);"></i>
+        <div>Prime Status</div>
+      </div>
+      <div class="subcategory-card" onclick="loadProducts('boost')">
+        <i class="fas fa-chart-line" style="font-size: 24px; margin-bottom: 8px; color: var(--primary);"></i>
+        <div>Буст</div>
+      </div>
+      <div class="subcategory-card" onclick="loadProducts('other')">
+        <i class="fas fa-ellipsis-h" style="font-size: 24px; margin-bottom: 8px; color: var(--primary);"></i>
+        <div>Другое</div>
+      </div>
+    </div>
+    
+    <!-- Таблица товаров -->
+    <h3 class="section-title">Товары</h3>
+    <table class="product-table">
+      <thead>
+        <tr>
+          <th>Название</th>
+          <th>Продавец</th>
+          <th>Наличие</th>
+          <th>Цена</th>
+        </tr>
+      </thead>
+      <tbody id="productList">
+        <tr>
+          <td colspan="4" style="text-align: center;">Выберите подкатегорию для отображения товаров</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  
+  <!-- Футер как на главной -->
+  <footer class="footer">
+    <button class="footer-btn" onclick="window.location.href='index.html'">На главную</button>
+    <div class="social-links">
+      <a href="#"><i class="fab fa-telegram"></i></a>
+      <a href="#"><i class="fab fa-vk"></i></a>
+      <a href="#"><i class="fab fa-youtube"></i></a>
+      <a href="#"><i class="fab fa-discord"></i></a>
+    </div>
+    <p class="copyright">© 2025 GlovimPlaye. Все права защищены.</p>
+  </footer>
+  
+  <!-- Мобильная навигация как на главной -->
+  <nav class="mobile-nav">
+    <div class="mobile-nav-container">
+      <a href="index.html" class="mobile-nav-item">
+        <i class="fas fa-home"></i>
+        <span>Главная</span>
+      </a>
+      <a href="shop.html" class="mobile-nav-item">
+        <i class="fas fa-store"></i>
+        <span>Магазин</span>
+      </a>
+      <a href="cart.html" class="mobile-nav-item">
+        <i class="fas fa-shopping-cart"></i>
+        <span>Корзина</span>
+      </a>
+      <a href="profile.html" class="mobile-nav-item active">
+        <i class="fas fa-user"></i>
+        <span>Профиль</span>
+      </a>
+    </div>
+  </nav>
+  
+  <!-- Скрипты -->
+  <script>
+    // Инициализация Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyAhn2H2BExFFf7GO2k_YDfrwPiV_cYdUBg",
+      authDomain: "glovimplaye-b1023.firebaseapp.com",
+      databaseURL: "https://glovimplaye-b1023-default-rtdb.firebaseio.com",
+      projectId: "glovimplaye-b1023",
+      storageBucket: "glovimplaye-b1023.appspot.com",
+      messagingSenderId: "553440591519",
+      appId: "1:553440591519:web:b7be45a9253689c0b8f1d3",
+      measurementId: "G-3X8F5JZK7E"
+    };
+    // Инициализация Firebase
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+
+    // Переключение темы
+    function applyTheme(theme) {
+      if (theme === 'dark') {
+        document.body.classList.add('dark-mode');
+        themeIcon.className = "fas fa-sun";
+        localStorage.setItem('theme', 'dark');
+      } else {
+        document.body.classList.remove('dark-mode');
+        themeIcon.className = "fas fa-moon";
+        localStorage.setItem('theme', 'light');
+      }
+    }
+
+    // Применяем сохраненную тему при загрузке
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    applyTheme(savedTheme);
+
+    themeToggle.addEventListener('click', () => {
+      const currentTheme = localStorage.getItem('theme') || 'light';
+      applyTheme(currentTheme === 'light' ? 'dark' : 'light');
+    });
+
+    // Загрузка товаров
+    function loadProducts(subcategory) {
+      const productList = document.getElementById('productList');
+      productList.innerHTML = '<tr><td colspan="4" style="text-align: center;">Загрузка товаров...</td></tr>';
+
+      firebase.database().ref('products')
+        .orderByChild('category')
+        .equalTo('csgo')
+        .once('value', (snapshot) => {
+          productList.innerHTML = '';
+          
+          if (!snapshot.exists()) {
+            productList.innerHTML = '<tr><td colspan="4" style="text-align: center;">Товаров не найдено</td></tr>';
+            return;
+          }
+
+          let hasProducts = false;
+
+          snapshot.forEach((childSnapshot) => {
+            const product = childSnapshot.val();
+            
+            if (product.subcategory && product.subcategory.toLowerCase() === subcategory) {
+              hasProducts = true;
+              
+              const row = document.createElement('tr');
+              row.innerHTML = `
+                <td>
+                  <a href="product-details.html?id=${childSnapshot.key}" class="product-name">${product.name || 'Без названия'}</a>
+                </td>
+                <td>
+                  <div class="seller-container">
+                    <img src="${product.sellerAvatar || 'images/default-avatar.png'}" class="seller-avatar" alt="Продавец">
+                    <span>${product.sellerName || 'Продавец'}</span>
+                  </div>
+                </td>
+                <td>${product.stock || 0} шт.</td>
+                <td class="price">${product.price || 0} ₽</td>
+              `;
+              productList.appendChild(row);
+            }
+          });
+
+          if (!hasProducts) {
+            productList.innerHTML = '<tr><td colspan="4" style="text-align: center;">Товаров в этой категории пока нет</td></tr>';
+          }
+        })
+        .catch((error) => {
+          console.error("Ошибка загрузки товаров:", error);
+          productList.innerHTML = '<tr><td colspan="4" style="text-align: center;">Ошибка загрузки товаров</td></tr>';
+        });
+    }
+
+    // Проверка авторизации
+    firebase.auth().onAuthStateChanged((user) => {
+      if (!user) {
+        // Если пользователь не авторизован, можно перенаправить на страницу входа
+        // window.location.href = 'login.html';
+      }
+    });
+
+    // Обработчики кнопок
+    notificationsBtn.addEventListener('click', () => {
+      alert('Уведомления будут доступны после авторизации');
+    });
+
+    profileBtn.addEventListener('click', () => {
+      window.location.href = 'profile.html';
+    });
+
+    // Адаптивность для мобильных устройств
+    function handleResize() {
+      if (window.innerWidth < 768) {
+        document.querySelector('.mobile-nav').style.display = 'block';
+      } else {
+        document.querySelector('.mobile-nav').style.display = 'none';
+      }
+    }
+
+    window.addEventListener('resize', handleResize);
+    handleResize();
+
+    // Загрузка данных при открытии страницы
+    document.addEventListener('DOMContentLoaded', () => {
+      // Можно загрузить товары по умолчанию
+      // loadProducts('accounts');
+    });
+  </script>
+</body>
+</html>

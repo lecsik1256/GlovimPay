@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>CS:GO — Аккаунты | GlovimPlaye</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Font Awesome (для иконок, если нужно) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+
+  <style>
+    /* ======= Сброс и базовые стили ======= */
+    * {
+      margin: 0; 
+      padding: 0; 
+      box-sizing: border-box;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      background: #2b2a2a; /* Тёмный фон, как на главной */
+      color: #fff;
+      min-height: 100vh;
+      margin: 0;
+      padding-bottom: 60px; /* Если нужна нижняя панель */
+    }
+
+    /* ======= Шапка (header), аналогично главной ======= */
+    header {
+      width: 100%;
+      background: #1f1f1f; /* Тёмная шапка */
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 15px 20px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+      border-radius: 0 0 8px 8px;
+      position: relative;
+    }
+    .logo-button {
+      background: none;
+      border: none;
+      color: #ff7f50; /* Оранжевый акцент */
+      font-size: 26px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: color 0.3s, transform 0.3s;
+    }
+    .logo-button:hover {
+      color: #ff4500;
+      transform: scale(1.05);
+    }
+
+   
+  </style>
+</head>
+<body>
+
+<!-- ===== Шапка, аналогично главной ===== -->
+<header>
+  <button class="logo-button" onclick="goHome()">GlovimPlaye</button>
+</header>
+
+<!-- ===== Основной контейнер ===== -->
+<div class="container">
+  <h1>CS:GO — Аккаунты</h1>
+</div>
+
+
+<h1>Все товары</h1>
+<div class="product-list" id="productList">
+  <!-- Товары будут загружаться сюда -->
+</div>
+
+<script>
+  // Инициализация Firebase (замените на свои данные)
+  var firebaseConfig = {
+    apiKey: "AIzaSyAhn2H2BExFFf7GO2k_YDfrwPiV_cYdUBg",
+    authDomain: "glovimplaye-b1023.firebaseapp.com",
+    databaseURL: "https://glovimplaye-b1023-default-rtdb.firebaseio.com",
+    projectId: "glovimplaye-b1023",
+    storageBucket: "glovimplaye-b1023.firebasestorage.app",
+    messagingSenderId: "553440591519",
+    appId: "1:553440591519:web:b7be45a9253689f322acaa"
+  };
+  firebase.initializeApp(firebaseConfig);
+
+  // Функция для отображения товара
+  function displayProduct(product, key) {
+    const productList = document.getElementById('productList');
+    
+    const card = document.createElement('div');
+    card.className = 'product-card';
+    // При клике на карточку можно перенаправить пользователя на страницу товара (например, product.html?pid=key)
+    card.onclick = () => { window.location.href = `product.html?pid=${key}`; };
+
+    // Если у товара есть фото (массив photoURLs), выводим первое
+    const imgSrc = product.photoURLs && product.photoURLs.length ? product.photoURLs[0] : 'default-product.jpg';
+
+    card.innerHTML = `
+      <img src="${imgSrc}" alt="${product.name}">
+      <h3>${product.name}</h3>
+      <p>${product.description.substring(0, 100)}...</p>
+      <div class="price">${product.price} ₽</div>
+    `;
+    productList.appendChild(card);
+  }
+
+  // Загружаем товары из узла 'products'
+  firebase.database().ref('products').once('value')
+    .then(snapshot => {
+      snapshot.forEach(childSnapshot => {
+        const key = childSnapshot.key;
+        const product = childSnapshot.val();
+        displayProduct(product, key);
+      });
+    })
+    .catch(error => {
+      console.error("Ошибка загрузки товаров:", error);
+    });
+</script>
+</body>
+</html>
+
+

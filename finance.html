@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Пополнить баланс | GlovimPay</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <!-- Firebase v8 -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* Основные переменные */
+    :root {
+      --primary: #6C5CE7;
+      --primary-dark: #5649C0;
+      --secondary: #00B894;
+      --accent: #FD79A8;
+      --dark: #2D3436;
+      --light: #F5F6FA;
+      --gray: #636E72;
+      --light-gray: #DFE6E9;
+      --success: #00B894;
+      --warning: #FDCB6E;
+      --danger: #D63031;
+      --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      --border-radius: 12px;
+      --sidebar-width: 280px;
+    }
+    
+    /* Общие стили */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+    
+    body {
+      background-color: var(--light);
+      color: var(--dark);
+      line-height: 1.6;
+    }
+    
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+    
+    button, input, textarea, select {
+      font-family: inherit;
+      outline: none;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    /* Хедер */
+    header {
+      background: white;
+      padding: 15px 30px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: var(--card-shadow);
+      margin-bottom: 30px;
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--primary);
+      cursor: pointer;
+    }
+    
+    .logo-img {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      object-fit: cover;
+    }
+    
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    
+    .theme-toggle {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: var(--light);
+      color: var(--gray);
+      border: none;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    
+    .theme-toggle:hover {
+      background: rgba(108, 92, 231, 0.1);
+      color: var(--primary);
+    }
+    
+    /* Основной контент */
+    .main-content {
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--card-shadow);
+      padding: 30px;
+      margin-bottom: 30px;
+    }
+    
+    .section-title {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      color: var(--dark);
+      position: relative;
+      padding-left: 15px;
+    }
+    
+    .section-title::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 5px;
+      bottom: 5px;
+      width: 4px;
+      background: var(--primary);
+      border-radius: 2px;
+    }
+    
+    /* Блок баланса */
+    .balance-display {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      padding: 25px;
+      border-radius: var(--border-radius);
+      text-align: center;
+      font-size: 24px;
+      font-weight: bold;
+      box-shadow: var(--card-shadow);
+      margin-bottom: 30px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .balance-display::before {
+      content: "";
+      position: absolute;
+      top: -20px;
+      right: -20px;
+      width: 80px;
+      height: 80px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 50%;
+    }
+    
+    /* Кнопки переключения */
+    .toggle-btn {
+      width: 100%;
+      padding: 15px;
+      background: var(--primary);
+      border: none;
+      color: white;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+      border-radius: var(--border-radius);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    
+    .toggle-btn:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+    
+    .toggle-btn i {
+      font-size: 18px;
+    }
+    
+    /* Панели форм */
+    .panel {
+      display: none;
+      border-top: 1px solid var(--light-gray);
+      padding-top: 20px;
+      margin-bottom: 20px;
+    }
+    
+    /* Формы */
+    form {
+      margin-top: 20px;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: var(--dark);
+    }
+    
+    input, select {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1px solid var(--light-gray);
+      border-radius: var(--border-radius);
+      font-size: 14px;
+      transition: var(--transition);
+      background: white;
+    }
+    
+    input:focus, select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.2);
+    }
+    
+    .submit-btn {
+      width: 100%;
+      padding: 15px;
+      background: var(--primary);
+      border: none;
+      color: white;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+      border-radius: var(--border-radius);
+      margin-top: 10px;
+    }
+    
+    .submit-btn:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+    
+    /* Сообщения */
+    .message {
+      text-align: center;
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: var(--border-radius);
+      display: none;
+      font-size: 14px;
+    }
+    
+    .message.success {
+      background: rgba(0, 184, 148, 0.1);
+      border: 1px solid var(--success);
+      color: var(--success);
+    }
+    
+    .message.error {
+      background: rgba(214, 48, 49, 0.1);
+      border: 1px solid var(--danger);
+      color: var(--danger);
+    }
+    
+    /* Модальное окно */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 2000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(5px);
+    }
+    
+    .modal-content {
+      background: white;
+      margin: 10% auto;
+      padding: 30px;
+      border-radius: var(--border-radius);
+      max-width: 500px;
+      position: relative;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      animation: modalFadeIn 0.3s ease;
+    }
+    
+    @keyframes modalFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .modal-header {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    
+    .modal-title {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--dark);
+    }
+    
+    .close-modal {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      font-size: 24px;
+      color: var(--gray);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    
+    .close-modal:hover {
+      color: var(--danger);
+    }
+    
+    .wallet-info {
+      margin: 25px 0;
+      text-align: center;
+    }
+    
+    .wallet-address {
+      background: var(--light);
+      padding: 12px;
+      border-radius: var(--border-radius);
+      font-family: monospace;
+      word-break: break-all;
+      margin: 15px 0;
+    }
+    
+    .wallet-qr {
+      width: 200px;
+      height: 200px;
+      margin: 0 auto;
+      border: 1px solid var(--light-gray);
+      border-radius: var(--border-radius);
+      padding: 10px;
+      background: white;
+    }
+    
+    .wallet-qr img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    
+    .network-select {
+      margin: 20px 0;
+    }
+    
+    /* Адаптация для мобильных устройств */
+    @media (max-width: 768px) {
+      .container {
+        padding: 15px;
+      }
+      
+      .main-content {
+        padding: 20px;
+      }
+      
+      .balance-display {
+        font-size: 20px;
+        padding: 20px;
+      }
+      
+      .modal-content {
+        width: 90%;
+        margin: 20% auto;
+        padding: 20px;
+      }
+      
+      .wallet-qr {
+        width: 150px;
+        height: 150px;
+      }
+    }
+    
+    /* Темная тема */
+    body.dark-mode {
+      background: #121212;
+      color: #e0e0e0;
+    }
+    
+    body.dark-mode header,
+    body.dark-mode .main-content,
+    body.dark-mode input,
+    body.dark-mode select {
+      background: #1E1E1E;
+      color: #e0e0e0;
+    }
+    
+    body.dark-mode label {
+      color: #e0e0e0;
+    }
+    
+    body.dark-mode input,
+    body.dark-mode select {
+      background: #2D2D2D;
+      border-color: #3D3D3D;
+      color: #e0e0e0;
+    }
+    
+    body.dark-mode .section-title {
+      color: #e0e0e0;
+    }
+    
+    body.dark-mode .modal-content {
+      background: #1E1E1E;
+      color: #e0e0e0;
+    }
+    
+    body.dark-mode .modal-title {
+      color: #e0e0e0;
+    }
+    
+    body.dark-mode .wallet-address {
+      background: #2D2D2D;
+      color: #e0e0e0;
+    }
+    
+    body.dark-mode .wallet-qr {
+      background: #2D2D2D;
+      border-color: #3D3D3D;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo" onclick="window.location.href='index.html'">
+      <img src="images/logo (2).png" alt="GlovimPay" class="logo-img">
+      <span>GlovimPay</span>
+    </div>
+    <div class="header-actions">
+      <button class="theme-toggle" id="themeToggle">
+        <i class="fas fa-sun" id="themeIcon"></i>
+      </button>
+    </div>
+  </header>
+  
+  <div class="container">
+    <div class="main-content">
+      <!-- Блок баланса -->
+      <div id="myBalance" class="balance-display">Мой баланс: загрузка...</div>
+      
+      <!-- Форма пополнения баланса -->
+      <button id="toggleTopUp" class="toggle-btn">
+        <i class="fas fa-wallet"></i> Пополнить баланс
+      </button>
+      <div id="topUpPanel" class="panel">
+        <h2 class="section-title">Создать заявку на пополнение</h2>
+        <form id="topUpForm">
+          <div class="form-group">
+            <label for="amount">Сумма (₽):</label>
+            <input type="number" id="amount" placeholder="Введите сумму" min="1" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="paymentMethod">Способ оплаты:</label>
+            <select id="paymentMethod" required>
+              <option value="card">Банковская карта</option>
+              <option value="crypto">Криптовалюта</option>
+            </select>
+          </div>
+          
+          <button type="submit" class="submit-btn">
+            <i class="fas fa-paper-plane"></i> Создать заявку
+          </button>
+        </form>
+        <div id="topUpMessage" class="message"></div>
+      </div>
+      
+      <!-- Форма вывода средств -->
+      <button id="toggleWithdraw" class="toggle-btn">
+        <i class="fas fa-money-bill-wave"></i> Вывести средства
+      </button>
+      <div id="withdrawPanel" class="panel">
+        <h2 class="section-title">Создать заявку на вывод средств</h2>
+        <form id="withdrawForm">
+          <div class="form-group">
+            <label for="withdrawAmount">Сумма (₽):</label>
+            <input type="number" id="withdrawAmount" placeholder="Введите сумму" min="1" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="withdrawMethod">Способ вывода:</label>
+            <select id="withdrawMethod" required>
+              <option value="card">Банковская карта</option>
+              <option value="crypto">Криптовалюта</option>
+            </select>
+          </div>
+          
+          <button type="submit" class="submit-btn">
+            <i class="fas fa-paper-plane"></i> Создать заявку
+          </button>
+        </form>
+        <div id="withdrawMessage" class="message"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Модальное окно для криптовалютного пополнения -->
+  <div id="cryptoModal" class="modal">
+    <div class="modal-content">
+      <span id="closeCryptoModal" class="close-modal">&times;</span>
+      <div class="modal-header">
+        <h2 class="modal-title">Пополнение через криптовалюту</h2>
+      </div>
+      
+      <div class="wallet-info">
+        <p id="cryptoAmountInfo">Сумма к оплате: 0 ₽</p>
+        
+        <div class="network-select">
+          <label for="cryptoNetworkModal">Выберите сеть:</label>
+          <select id="cryptoNetworkModal" required>
+            <option value="ERC20">Ethereum (ERC20)</option>
+            <option value="BEP20">Binance Smart Chain (BEP20)</option>
+            <option value="TRC20">Tron (TRC20)</option>
+            <option value="TRX">TRX</option>
+          </select>
+        </div>
+        
+        <p>Отправьте средства на этот кошелек:</p>
+        <div class="wallet-address">TYbctrMQ6vKzq7FYurDVQg6qgkr8wcZdYT</div>
+        
+        <div class="wallet-qr">
+          <img src="images/trx tron.jpg" alt="QR код">
+        </div>
+        
+        <p>После отправки средств нажмите кнопку подтверждения</p>
+      </div>
+      
+      <button id="confirmCryptoPayment" class="submit-btn">
+        <i class="fas fa-check-circle"></i> Я отправил платеж
+      </button>
+      <div id="cryptoMessage" class="message"></div>
+    </div>
+  </div>
+  
+  <script>
+    // Firebase конфигурация
+    var firebaseConfig = {
+      apiKey: "AIzaSyAhn2H2BExFFf7GO2k_YDfrwPiV_cYdUBg",
+      authDomain: "glovimplaye-b1023.firebaseapp.com",
+      databaseURL: "https://glovimplaye-b1023-default-rtdb.firebaseio.com",
+      projectId: "glovimplaye-b1023",
+      storageBucket: "glovimplaye-b1023.firebasestorage.app",
+      messagingSenderId: "553440591519",
+      appId: "1:553440591519:web:b7be45a9253689f322acaa"
+    };
+    
+    // Инициализация Firebase
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    
+    // Глобальные переменные
+    let pendingTopUpAmount = null;
+    let currentUser = null;
+    
+    // Переключение темы
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+    
+    function applyTheme(theme) {
+      if (theme === 'dark') {
+        document.body.classList.add('dark-mode');
+        themeIcon.className = "fas fa-moon";
+        localStorage.setItem('theme', 'dark');
+      } else {
+        document.body.classList.remove('dark-mode');
+        themeIcon.className = "fas fa-sun";
+        localStorage.setItem('theme', 'light');
+      }
+    }
+    
+    themeToggle.addEventListener('click', () => {
+      const currentTheme = localStorage.getItem('theme') || 'light';
+      applyTheme(currentTheme === 'light' ? 'dark' : 'light');
+    });
+    
+    // Применяем сохраненную тему при загрузке
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    applyTheme(savedTheme);
+    
+    // Проверка авторизации и загрузка баланса
+    firebase.auth().onAuthStateChanged(function(user) {
+      if (!user) {
+        window.location.href = "login.html";
+      } else {
+        currentUser = user;
+        loadUserBalance();
+      }
+    });
+    
+    // Загрузка баланса пользователя
+    function loadUserBalance() {
+      if (!currentUser) return;
+      
+      const balanceRef = firebase.database().ref('users/' + currentUser.uid + '/balance');
+      
+      // Обработчик для однократного получения данных
+      balanceRef.once('value')
+        .then(snapshot => {
+          const balance = snapshot.val() || 0;
+          updateBalanceDisplay(balance);
+        })
+        .catch(error => {
+          console.error("Ошибка при загрузке баланса:", error);
+          updateBalanceDisplay("ошибка загрузки");
+        });
+      
+      // Обработчик для отслеживания изменений в реальном времени
+      balanceRef.on('value', snapshot => {
+        const balance = snapshot.val() || 0;
+        updateBalanceDisplay(balance);
+      });
+    }
+    
+    // Обновление отображения баланса
+    function updateBalanceDisplay(balance) {
+      const balanceDisplay = document.getElementById("myBalance");
+      if (typeof balance === 'number') {
+        balanceDisplay.innerText = `Мой баланс: ${balance.toFixed(2)} ₽`;
+      } else {
+        balanceDisplay.innerText = `Мой баланс: ${balance}`;
+      }
+    }
+    
+    // Переключение панели пополнения
+    document.getElementById("toggleTopUp").addEventListener("click", function() {
+      const panel = document.getElementById("topUpPanel");
+      if (panel.style.display === "block") {
+        panel.style.display = "none";
+        this.innerHTML = '<i class="fas fa-wallet"></i> Пополнить баланс';
+      } else {
+        panel.style.display = "block";
+        this.innerHTML = '<i class="fas fa-chevron-up"></i> Скрыть форму';
+        // Скрываем панель вывода, если она открыта
+        document.getElementById("withdrawPanel").style.display = "none";
+        document.getElementById("toggleWithdraw").innerHTML = '<i class="fas fa-money-bill-wave"></i> Вывести средства';
+      }
+    });
+    
+    // Переключение панели вывода средств
+    document.getElementById("toggleWithdraw").addEventListener("click", function() {
+      const panel = document.getElementById("withdrawPanel");
+      if (panel.style.display === "block") {
+        panel.style.display = "none";
+        this.innerHTML = '<i class="fas fa-money-bill-wave"></i> Вывести средства';
+      } else {
+        panel.style.display = "block";
+        this.innerHTML = '<i class="fas fa-chevron-up"></i> Скрыть форму';
+        // Скрываем панель пополнения, если она открыта
+        document.getElementById("topUpPanel").style.display = "none";
+        document.getElementById("toggleTopUp").innerHTML = '<i class="fas fa-wallet"></i> Пополнить баланс';
+      }
+    });
+    
+    // Обработка отправки формы пополнения
+    document.getElementById("topUpForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const amount = parseFloat(document.getElementById("amount").value);
+      const method = document.getElementById("paymentMethod").value;
+      
+      if (isNaN(amount) || amount === "") {
+        showMessage("topUpMessage", "Пожалуйста, введите корректную сумму.", true);
+        return;
+      }
+      
+      if (amount <= 0) {
+        showMessage("topUpMessage", "Сумма должна быть больше 0.", true);
+        return;
+      }
+      
+      // Если выбран криптовалютный способ, сохраняем сумму и открываем модальное окно
+      if (method === "crypto") {
+        pendingTopUpAmount = amount;
+        openCryptoModal();
+      } else {
+        // Для банковской карты сразу создаём заявку
+        createTopUpRequest({ amount: amount, method: method });
+      }
+    });
+    
+    // Обработка отправки формы вывода средств
+    document.getElementById("withdrawForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const amount = parseFloat(document.getElementById("withdrawAmount").value);
+      const method = document.getElementById("withdrawMethod").value;
+      
+      if (isNaN(amount)) {
+        showMessage("withdrawMessage", "Пожалуйста, введите корректную сумму.", true);
+        return;
+      }
+      
+      if (amount <= 0) {
+        showMessage("withdrawMessage", "Сумма должна быть больше 0.", true);
+        return;
+      }
+      
+      if (!currentUser) {
+        showMessage("withdrawMessage", "Ошибка: пользователь не авторизован.", true);
+        return;
+      }
+      
+      // Проверяем, достаточно ли средств на балансе
+      firebase.database().ref('users/' + currentUser.uid + '/balance').once('value')
+        .then(function(snapshot) {
+          const balance = snapshot.val() || 0;
+          if (balance < amount) {
+            showMessage("withdrawMessage", "Недостаточно средств на балансе.", true);
+            return Promise.reject("Недостаточно средств");
+          }
+          
+          // Если средств достаточно, создаем заявку
+          const requestData = {
+            userId: currentUser.uid,
+            amount: amount,
+            method: method,
+            status: "pending",
+            createdAt: firebase.database.ServerValue.TIMESTAMP
+          };
+          
+          return firebase.database().ref("withdrawRequests").push(requestData);
+        })
+        .then(function() {
+          showMessage("withdrawMessage", "Заявка на вывод успешно создана. Ожидайте подтверждения.", false);
+          document.getElementById("withdrawForm").reset();
+        })
+        .catch(function(error) {
+          if (error !== "Недостаточно средств") {
+            showMessage("withdrawMessage", "Ошибка при создании заявки: " + error.message, true);
+          }
+        });
+    });
+    
+    // Функция создания заявки на пополнение
+    function createTopUpRequest(extraData) {
+      if (!currentUser) {
+        showMessage("topUpMessage", "Ошибка: пользователь не авторизован.", true);
+        return;
+      }
+      
+      const amount = extraData.amount || parseFloat(document.getElementById("amount").value);
+      const method = document.getElementById("paymentMethod").value;
+      
+      let requestData = {
+        userId: currentUser.uid,
+        amount: amount,
+        method: method,
+        status: "pending",
+        createdAt: firebase.database.ServerValue.TIMESTAMP
+      };
+      
+      if (extraData) {
+        requestData = { ...requestData, ...extraData };
+      }
+      
+      firebase.database().ref("topUpRequests").push(requestData)
+        .then(function() {
+          showMessage("topUpMessage", "Заявка успешно создана. Ожидайте подтверждения.", false);
+          document.getElementById("topUpForm").reset();
+          pendingTopUpAmount = null;
+        })
+        .catch(function(error) {
+          showMessage("topUpMessage", "Ошибка при создании заявки: " + error.message, true);
+        });
+    }
+    
+    // Функция показа сообщений
+    function showMessage(elementId, msg, isError) {
+      const messageDiv = document.getElementById(elementId);
+      messageDiv.innerText = msg;
+      messageDiv.className = "message " + (isError ? "error" : "success");
+      messageDiv.style.display = "block";
+      setTimeout(function() {
+        messageDiv.style.display = "none";
+      }, 5000);
+    }
+    
+    // Функции открытия и закрытия модального окна для криптовалютного пополнения
+    function openCryptoModal() {
+      // Отображаем сумму для оплаты в модальном окне
+      document.getElementById("cryptoAmountInfo").innerText = "Сумма к оплате: " + pendingTopUpAmount + " ₽";
+      document.getElementById("cryptoModal").style.display = "block";
+    }
+    
+    function closeCryptoModal() {
+      document.getElementById("cryptoModal").style.display = "none";
+    }
+    
+    document.getElementById("closeCryptoModal").addEventListener("click", closeCryptoModal);
+    
+    // Закрытие модального окна при клике вне его
+    window.addEventListener('click', function(event) {
+      if (event.target === document.getElementById('cryptoModal')) {
+        closeCryptoModal();
+      }
+    });
+    
+    // Обработка нажатия кнопки "Я отправил"
+    document.getElementById("confirmCryptoPayment").addEventListener("click", function() {
+      const network = document.getElementById("cryptoNetworkModal").value;
+      if (!network) {
+        showMessage("cryptoMessage", "Выберите сеть.", true);
+        return;
+      }
+      
+      // Формируем данные для криптовалютной заявки
+      const extraData = {
+        network: network,
+        amount: pendingTopUpAmount,
+        walletAddress: "TYbctrMQ6vKzq7FYurDVQg6qgkr8wcZdYT"
+      };
+      
+      closeCryptoModal();
+      createTopUpRequest(extraData);
+    });
+  </script>
+</body>
+</html>

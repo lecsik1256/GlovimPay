@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>GlovimPlaye | Профиль</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+  <style>
+    :root {
+      --primary: #6C5CE7;
+      --primary-dark: #5649C0;
+      --secondary: #00B894;
+      --accent: #FD79A8;
+      --dark: #2D3436;
+      --light: #F5F6FA;
+      --gray: #636E72;
+      --light-gray: #DFE6E9;
+      --success: #00B894;
+      --warning: #FDCB6E;
+      --danger: #D63031;
+      --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      --border-radius: 12px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background-color: var(--light);
+      color: var(--dark);
+      line-height: 1.6;
+      padding-bottom: 70px;
+    }
+
+    /* Header */
+    .header {
+      background: white;
+      box-shadow: var(--card-shadow);
+      padding: 15px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    .logo-img {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      object-fit: cover;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 15px;
+    }
+
+    .header-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--light-gray);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--dark);
+      cursor: pointer;
+      transition: var(--transition);
+      border: none;
+    }
+
+    .header-btn:hover {
+      background: var(--primary);
+      color: white;
+      transform: scale(1.1);
+    }
+
+    .header-btn.logout {
+      background: var(--danger);
+      color: white;
+    }
+
+    .header-btn.logout:hover {
+      background: #c82333;
+    }
+
+    /* Profile Banner */
+    .profile-banner {
+      position: relative;
+      width: 100%;
+      height: 220px;
+      overflow: hidden;
+    }
+
+    .profile-banner-bg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-size: cover;
+      background-position: center;
+      filter: blur(4px);
+      z-index: 1;
+      background-color: var(--primary);
+    }
+
+    .profile-banner-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+      z-index: 2;
+    }
+
+    .profile-banner-content {
+      position: relative;
+      z-index: 3;
+      display: flex;
+      align-items: flex-end;
+      gap: 20px;
+      padding: 20px;
+      height: 100%;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .profile-avatar {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      border: 4px solid white;
+      object-fit: cover;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      transform: translateY(30px);
+      background: var(--light-gray);
+    }
+
+    .profile-info {
+      margin-bottom: 20px;
+      flex: 1;
+    }
+
+    .profile-name {
+      font-size: 24px;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 5px;
+    }
+
+    .profile-status {
+      display: inline-block;
+      padding: 4px 10px;
+      background: var(--success);
+      color: white;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    /* Main Content */
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    .profile-content {
+      padding: 20px;
+      margin-top: 40px;
+    }
+
+    .profile-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+
+    .stat-card {
+      background: white;
+      border-radius: var(--border-radius);
+      padding: 15px;
+      box-shadow: var(--card-shadow);
+      text-align: center;
+      transition: var(--transition);
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .stat-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 5px;
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: var(--gray);
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 25px 0 15px;
+      position: relative;
+      padding-left: 15px;
+    }
+
+    .section-title::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 5px;
+      bottom: 5px;
+      width: 4px;
+      background: var(--primary);
+      border-radius: 2px;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 15px;
+      margin: 25px 0;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 12px;
+      border-radius: var(--border-radius);
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+
+    .btn-outline {
+      background: white;
+      color: var(--primary);
+      border: 1px solid var(--primary);
+    }
+
+    .btn-outline:hover {
+      background: rgba(108, 92, 231, 0.1);
+    }
+
+    /* User ID */
+    .hidden-id {
+      background: white;
+      padding: 15px;
+      border-radius: var(--border-radius);
+      text-align: center;
+      margin: 20px 0;
+      box-shadow: var(--card-shadow);
+      display: none;
+    }
+
+    .id-text {
+      font-family: monospace;
+      font-size: 16px;
+      word-break: break-all;
+      color: var(--dark);
+    }
+
+    /* Products Grid */
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 15px;
+      margin-top: 15px;
+    }
+
+    .product-card {
+      background: white;
+      border-radius: var(--border-radius);
+      overflow: hidden;
+      box-shadow: var(--card-shadow);
+      transition: var(--transition);
+    }
+
+    .product-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+
+    .product-image {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+    }
+
+    .product-info {
+      padding: 15px;
+    }
+
+    .product-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 5px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .product-price {
+      font-weight: 700;
+      color: var(--primary);
+      margin-top: 10px;
+    }
+
+    /* Reviews */
+    .review-item {
+      background: white;
+      border-radius: var(--border-radius);
+      padding: 15px;
+      margin-bottom: 15px;
+      box-shadow: var(--card-shadow);
+    }
+
+    .review-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .review-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-right: 10px;
+    }
+
+    .review-author {
+      font-weight: 600;
+    }
+
+    .review-rating {
+      color: var(--warning);
+      margin-left: auto;
+    }
+
+    .review-text {
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* Mobile Navigation */
+    .mobile-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+      z-index: 100;
+      display: none;
+    }
+
+    .mobile-nav-container {
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+    }
+
+    .mobile-nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: var(--gray);
+      font-size: 12px;
+      gap: 5px;
+      padding: 5px 10px;
+      border-radius: 8px;
+      transition: var(--transition);
+    }
+
+    .mobile-nav-item i {
+      font-size: 20px;
+    }
+
+    .mobile-nav-item.active, .mobile-nav-item:hover {
+      color: var(--primary);
+      background: rgba(108, 92, 231, 0.1);
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: var(--border-radius);
+      padding: 20px;
+      width: 90%;
+      max-width: 500px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      animation: modalFadeIn 0.3s ease;
+    }
+
+    @keyframes modalFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 24px;
+      color: var(--gray);
+      cursor: pointer;
+    }
+
+    .file-upload {
+      margin: 20px 0;
+    }
+
+    .file-upload-label {
+      display: block;
+      padding: 12px;
+      background: var(--light-gray);
+      border-radius: var(--border-radius);
+      text-align: center;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .file-upload-label:hover {
+      background: #e0e0e0;
+    }
+
+    .file-upload-input {
+      display: none;
+    }
+
+    .preview-image {
+      width: 100px;
+      height: 100px;
+      border-radius: var(--border-radius);
+      object-fit: cover;
+      margin: 15px auto;
+      display: block;
+      border: 2px solid var(--light-gray);
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--light-gray);
+      border-radius: var(--border-radius);
+      margin-bottom: 15px;
+      font-size: 16px;
+    }
+
+    /* Dark Mode */
+    body.dark-mode {
+      background: #121212;
+      color: #e0e0e0;
+    }
+
+    body.dark-mode .header,
+    body.dark-mode .stat-card,
+    body.dark-mode .product-card,
+    body.dark-mode .review-item,
+    body.dark-mode .hidden-id {
+      background: #1E1E1E;
+      color: #e0e0e0;
+    }
+
+    body.dark-mode .stat-label,
+    body.dark-mode .section-title,
+    body.dark-mode .id-text {
+      color: #e0e0e0;
+    }
+
+    body.dark-mode .btn-outline {
+      background: #1E1E1E;
+      color: #e0e0e0;
+      border-color: #3D3D3D;
+    }
+
+    body.dark-mode .btn-outline:hover {
+      background: rgba(108, 92, 231, 0.2);
+    }
+
+    body.dark-mode .mobile-nav {
+      background: #1E1E1E;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    body.dark-mode .mobile-nav-item {
+      color: #b0b0b0;
+    }
+
+    body.dark-mode .mobile-nav-item.active,
+    body.dark-mode .mobile-nav-item:hover {
+      color: var(--primary);
+    }
+
+    body.dark-mode .form-input,
+    body.dark-mode .file-upload-label {
+      background: #2D2D2D;
+      border-color: #3D3D3D;
+      color: #e0e0e0;
+    }
+
+    body.dark-mode .file-upload-label:hover {
+      background: #3D3D3D;
+    }
+
+    body.dark-mode .header-btn {
+      background: #2D2D2D;
+      color: #e0e0e0;
+    }
+
+    body.dark-mode .header-btn:hover {
+      background: var(--primary);
+      color: white;
+    }
+
+    body.dark-mode .header-btn.logout {
+      background: var(--danger);
+      color: white;
+    }
+
+    body.dark-mode .header-btn.logout:hover {
+      background: #c82333;
+    }
+
+    /* Для кнопки выхода в модальном окне */
+    #logoutBtnModal {
+      width: 100%;
+      color: var(--danger);
+      border-color: var(--danger);
+    }
+
+    #logoutBtnModal:hover {
+      background: rgba(220, 53, 69, 0.1);
+    }
+
+    body.dark-mode #logoutBtnModal {
+      color: var(--danger);
+      border-color: var(--danger);
+    }
+
+    body.dark-mode #logoutBtnModal:hover {
+      background: rgba(220, 53, 69, 0.2);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .profile-banner {
+        height: 180px;
+      }
+      
+      .profile-avatar {
+        width: 80px;
+        height: 80px;
+      }
+      
+      .profile-name {
+        font-size: 20px;
+      }
+      
+      .action-buttons {
+        flex-direction: column;
+      }
+
+      .mobile-nav {
+        display: block;
+      }
+    }
+
+    @media (max-width: 576px) {
+      .profile-stats {
+        grid-template-columns: 1fr;
+      }
+
+      .product-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <a href="index.html" class="logo">
+      <img src="images/logo (2).png" alt="GlovimPlaye" class="logo-img">
+      <span>GlovimPlaye</span>
+    </a>
+    <div class="header-actions">
+      <button class="header-btn" id="themeToggle">
+        <i class="fas fa-moon" id="themeIcon"></i>
+      </button>
+      <button class="header-btn" id="notificationsBtn">
+        <i class="fas fa-bell"></i>
+      </button>
+      <button class="header-btn logout" id="logoutBtn" title="Выйти">
+        <i class="fas fa-sign-out-alt"></i>
+      </button>
+    </div>
+  </header>
+  
+  <!-- Profile Banner -->
+  <section class="profile-banner">
+    <div class="profile-banner-bg" id="profileBannerBg"></div>
+    <div class="profile-banner-overlay"></div>
+    <div class="profile-banner-content">
+      <img src="images/avatar.jpg" alt="Аватар" class="profile-avatar" id="profileAvatar">
+      <div class="profile-info">
+        <h1 class="profile-name" id="profileName">Загрузка...</h1>
+        <span class="profile-status" id="profileStatus">Онлайн</span>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Main Content -->
+  <main class="container">
+    <div class="profile-content">
+      <!-- Статистика профиля -->
+      <div class="profile-stats">
+        <div class="stat-card">
+          <div class="stat-value" id="productsCount">0</div>
+          <div class="stat-label">Товары</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="salesCount">0</div>
+          <div class="stat-label">Продажи</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="ratingValue">0.0</div>
+          <div class="stat-label">Рейтинг</div>
+        </div>
+      </div>
+  
+      <!-- Кнопки действий -->
+      <div class="action-buttons">
+        <button class="btn btn-primary" id="editProfileBtn">
+          <i class="fas fa-edit"></i> Редактировать
+        </button>
+        <button class="btn btn-outline" id="showIdBtn">
+          <i class="fas fa-id-card"></i> Показать ID
+        </button>
+      </div>
+  
+      <!-- Скрытый ID пользователя -->
+      <div class="hidden-id" id="userIdContainer">
+        <p>Ваш уникальный ID:</p>
+        <p class="id-text" id="userId"></p>
+      </div>
+  
+      <!-- Мои товары -->
+      <h2 class="section-title">Мои товары</h2>
+      <div class="product-grid" id="userProductsGrid">
+        <!-- Товары будут загружены через JavaScript -->
+        <div class="text-center" style="grid-column: 1 / -1;">
+          <p>Загрузка товаров...</p>
+        </div>
+      </div>
+  
+      <!-- Отзывы -->
+      <h2 class="section-title">Отзывы</h2>
+      <div id="reviewsContainer">
+        <div class="review-item">
+          <div class="review-header">
+            <img src="images/avatar.jpg" alt="Аватар" class="review-avatar">
+            <span class="review-author">Иван Иванов</span>
+            <span class="review-rating">
+              <i class="fas fa-star"></i> 4.8
+            </span>
+          </div>
+          <p class="review-text">Отличный продавец! Товар соответствует описанию, доставка быстрая. Рекомендую!</p>
+        </div>
+      </div>
+    </div>
+  </main>
+  
+  <!-- Мобильная навигация -->
+  <nav class="mobile-nav">
+    <div class="mobile-nav-container">
+      <a href="index.html" class="mobile-nav-item">
+        <i class="fas fa-home"></i>
+        <span>Главная</span>
+      </a>
+      <a href="shop.html" class="mobile-nav-item">
+        <i class="fas fa-store"></i>
+        <span>Магазин</span>
+      </a>
+      <a href="favorites.html" class="mobile-nav-item">
+        <i class="fas fa-heart"></i>
+        <span>Избранное</span>
+      </a>
+      <a href="profile.html" class="mobile-nav-item active">
+        <i class="fas fa-user"></i>
+        <span>Профиль</span>
+      </a>
+      <a href="cart.html" class="mobile-nav-item">
+        <i class="fas fa-shopping-cart"></i>
+        <span>Корзина</span>
+      </a>
+    </div>
+  </nav>
+  
+  <!-- Модальное окно редактирования профиля -->
+  <div class="modal" id="editProfileModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Редактировать профиль</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="file-upload">
+          <label for="avatarUpload" class="file-upload-label">
+            <i class="fas fa-camera"></i> Загрузить аватар
+          </label>
+          <input type="file" id="avatarUpload" class="file-upload-input" accept="image/*">
+          <img src="" alt="Превью" class="preview-image" id="avatarPreview" style="display: none;">
+        </div>
+  
+        <div class="file-upload">
+          <label for="bannerUpload" class="file-upload-label">
+            <i class="fas fa-image"></i> Загрузить баннер
+          </label>
+          <input type="file" id="bannerUpload" class="file-upload-input" accept="image/*">
+          <img src="" alt="Превью" class="preview-image" id="bannerPreview" style="display: none;">
+        </div>
+  
+        <input type="text" class="form-input" id="editName" placeholder="Имя пользователя">
+        <textarea class="form-input" id="editBio" placeholder="О себе" rows="3"></textarea>
+  
+        <button class="btn btn-primary" id="saveProfileBtn">
+          <i class="fas fa-save"></i> Сохранить изменения
+        </button>
+        
+        <button class="btn btn-outline" id="logoutBtnModal" style="margin-top: 15px;">
+          <i class="fas fa-sign-out-alt"></i> Выйти из аккаунта
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Модальное окно уведомлений -->
+  <div class="modal" id="notificationsModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Уведомления</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>У вас пока нет новых уведомлений</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Инициализация Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyAhn2H2BExFFf7GO2k_YDfrwPiV_cYdUBg",
+      authDomain: "glovimplaye-b1023.firebaseapp.com",
+      databaseURL: "https://glovimplaye-b1023-default-rtdb.firebaseio.com",
+      projectId: "glovimplaye-b1023",
+      storageBucket: "glovimplaye-b1023.appspot.com",
+      messagingSenderId: "553440591519",
+      appId: "1:553440591519:web:b7be45a9253689f322acaa"
+    };
+
+    // Инициализация Firebase
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+
+    // DOM элементы
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+    const notificationsBtn = document.getElementById('notificationsBtn');
+    const notificationsModal = document.getElementById('notificationsModal');
+    const editProfileBtn = document.getElementById('editProfileBtn');
+    const editProfileModal = document.getElementById('editProfileModal');
+    const showIdBtn = document.getElementById('showIdBtn');
+    const userIdContainer = document.getElementById('userIdContainer');
+    const userId = document.getElementById('userId');
+    const saveProfileBtn = document.getElementById('saveProfileBtn');
+    const avatarUpload = document.getElementById('avatarUpload');
+    const bannerUpload = document.getElementById('bannerUpload');
+    const avatarPreview = document.getElementById('avatarPreview');
+    const bannerPreview = document.getElementById('bannerPreview');
+    const editName = document.getElementById('editName');
+    const editBio = document.getElementById('editBio');
+    const profileName = document.getElementById('profileName');
+    const profileAvatar = document.getElementById('profileAvatar');
+    const profileBannerBg = document.getElementById('profileBannerBg');
+    const productsCount = document.getElementById('productsCount');
+    const salesCount = document.getElementById('salesCount');
+    const ratingValue = document.getElementById('ratingValue');
+    const userProductsGrid = document.getElementById('userProductsGrid');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const logoutBtnModal = document.getElementById('logoutBtnModal');
+
+    // Переключение темы
+    function applyTheme(theme) {
+      if (theme === 'dark') {
+        document.body.classList.add('dark-mode');
+        themeIcon.className = "fas fa-sun";
+        localStorage.setItem('theme', 'dark');
+      } else {
+        document.body.classList.remove('dark-mode');
+        themeIcon.className = "fas fa-moon";
+        localStorage.setItem('theme', 'light');
+      }
+    }
+
+    themeToggle.addEventListener('click', () => {
+      const currentTheme = localStorage.getItem('theme') || 'light';
+      applyTheme(currentTheme === 'light' ? 'dark' : 'light');
+    });
+
+    // Применяем сохраненную тему при загрузке
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    applyTheme(savedTheme);
+
+    // Модальные окна
+    notificationsBtn.addEventListener('click', () => {
+      notificationsModal.style.display = 'flex';
+    });
+
+    editProfileBtn.addEventListener('click', () => {
+      editProfileModal.style.display = 'flex';
+    });
+
+    showIdBtn.addEventListener('click', () => {
+      userIdContainer.style.display = userIdContainer.style.display === 'block' ? 'none' : 'block';
+    });
+
+    document.querySelectorAll('.modal-close').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.modal').forEach(modal => {
+          modal.style.display = 'none';
+        });
+      });
+    });
+
+    window.addEventListener('click', (e) => {
+      if (e.target.classList.contains('modal')) {
+        e.target.style.display = 'none';
+      }
+    });
+
+    // Загрузка изображений
+    avatarUpload.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          avatarPreview.src = event.target.result;
+          avatarPreview.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    bannerUpload.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          bannerPreview.src = event.target.result;
+          bannerPreview.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // Загрузка данных пользователя
+    function loadUserData() {
+      firebase.auth().onAuthStateChanged((user) => {
+        if (user) {
+          // Устанавливаем ID пользователя
+          userId.textContent = user.uid;
+          
+          // Загружаем данные профиля из базы данных
+          const userRef = firebase.database().ref('users/' + user.uid);
+          
+          userRef.on('value', (snapshot) => {
+            const userData = snapshot.val() || {};
+            
+            // Обновляем данные профиля
+            profileName.textContent = userData.nickname || userData.name || 'Пользователь';
+            if (userData.avatar) {
+              profileAvatar.src = userData.avatar;
+            } else if (user.photoURL) {
+              // Используем аватар из Google, если нет своего
+              profileAvatar.src = user.photoURL;
+            }
+            
+            if (userData.banner) {
+              profileBannerBg.style.backgroundImage = `url(${userData.banner})`;
+            }
+            
+            // Заполняем форму редактирования
+            editName.value = userData.nickname || userData.name || '';
+            editBio.value = userData.bio || '';
+            
+            // Статистика
+            productsCount.textContent = userData.productsCount || '0';
+            salesCount.textContent = userData.salesCount || '0';
+            ratingValue.textContent = userData.rating ? userData.rating.toFixed(1) : '0.0';
+          });
+          
+          // Загружаем товары пользователя
+          loadUserProducts(user.uid);
+        } else {
+          // Перенаправляем на страницу входа, если пользователь не авторизован
+          window.location.href = 'login.html';
+        }
+      });
+    }
+
+    // Загрузка товаров пользователя
+    function loadUserProducts(userId) {
+      const productsRef = firebase.database().ref('products').orderByChild('sellerId').equalTo(userId).limitToLast(6);
+      
+      productsRef.on('value', (snapshot) => {
+        userProductsGrid.innerHTML = '';
+        
+        if (!snapshot.exists()) {
+          userProductsGrid.innerHTML = `
+            <div class="text-center" style="grid-column: 1 / -1;">
+              <p>У вас пока нет товаров</p>
+              <button class="btn btn-primary" style="margin-top: 10px;">
+                <i class="fas fa-plus"></i> Добавить товар
+              </button>
+            </div>
+          `;
+          return;
+        }
+        
+        snapshot.forEach((childSnapshot) => {
+          const product = childSnapshot.val();
+          const productId = childSnapshot.key;
+          
+          const productCard = document.createElement('div');
+          productCard.className = 'product-card';
+          productCard.innerHTML = `
+            <img src="${product.image}" alt="${product.name}" class="product-image">
+            <div class="product-info">
+              <h3 class="product-title">${product.name}</h3>
+              <div class="product-price">${product.price} ₽</div>
+            </div>
+          `;
+          
+          productCard.addEventListener('click', () => {
+            window.location.href = `product.html?id=${productId}`;
+          });
+          
+          userProductsGrid.appendChild(productCard);
+        });
+      });
+    }
+
+    // Сохранение профиля
+    saveProfileBtn.addEventListener('click', async () => {
+      const user = firebase.auth().currentUser;
+      if (!user) return;
+      
+      const storageRef = firebase.storage().ref();
+      const updates = {};
+      
+      // Обновляем имя, если оно изменилось
+      if (editName.value.trim() !== '') {
+        updates.nickname = editName.value.trim();
+        profileName.textContent = editName.value.trim();
+      }
+      
+      // Обновляем био, если оно изменилось
+      if (editBio.value.trim() !== '') {
+        updates.bio = editBio.value.trim();
+      }
+      
+      // Загружаем новый аватар, если он был выбран
+      if (avatarUpload.files[0]) {
+        const avatarRef = storageRef.child(`avatars/${user.uid}`);
+        await avatarRef.put(avatarUpload.files[0]);
+        const avatarUrl = await avatarRef.getDownloadURL();
+        updates.avatar = avatarUrl;
+        profileAvatar.src = avatarUrl;
+      }
+      
+      // Загружаем новый баннер, если он был выбран
+      if (bannerUpload.files[0]) {
+        const bannerRef = storageRef.child(`banners/${user.uid}`);
+        await bannerRef.put(bannerUpload.files[0]);
+        const bannerUrl = await bannerRef.getDownloadURL();
+        updates.banner = bannerUrl;
+        profileBannerBg.style.backgroundImage = `url(${bannerUrl})`;
+      }
+      
+      // Сохраняем изменения в базе данных
+      await firebase.database().ref('users/' + user.uid).update(updates);
+      
+      // Закрываем модальное окно
+      editProfileModal.style.display = 'none';
+      
+      // Сбрасываем форму
+      avatarPreview.style.display = 'none';
+      bannerPreview.style.display = 'none';
+      avatarUpload.value = '';
+      bannerUpload.value = '';
+    });
+
+    // Выход из аккаунта
+    function logout() {
+      firebase.auth().signOut().then(() => {
+        window.location.href = 'login.html';
+      }).catch((error) => {
+        console.error('Ошибка выхода:', error);
+        alert('Произошла ошибка при выходе из аккаунта');
+      });
+    }
+
+    // Обработчики для кнопок выхода
+    logoutBtn.addEventListener('click', logout);
+    logoutBtnModal.addEventListener('click', logout);
+
+    // Инициализация при загрузке страницы
+    document.addEventListener('DOMContentLoaded', () => {
+      loadUserData();
+      
+      // Проверяем ширину экрана и скрываем/показываем мобильную навигацию
+      function checkScreenSize() {
+        if (window.innerWidth < 768) {
+          document.querySelector('.mobile-nav').style.display = 'block';
+        } else {
+          document.querySelector('.mobile-nav').style.display = 'none';
+        }
+      }
+      
+      window.addEventListener('resize', checkScreenSize);
+      checkScreenSize();
+    });
+  </script>
+</body>
+</html>
+ 
